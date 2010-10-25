@@ -83,7 +83,7 @@ sub start {
                     $self->{handle}->push_read(ref $self => $self,
                       sub {
                         $self->{callback}->(@_);
-                        return undef;
+                        return;
                       });
                     $self->{callback}->(@_);
                     return 1;
