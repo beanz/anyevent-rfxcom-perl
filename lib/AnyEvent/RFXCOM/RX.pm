@@ -36,12 +36,41 @@ use Device::RFXCOM::RX;
 use Carp qw/croak/;
 use Try::Tiny;
 
+=head2 C<new(%params)>
+
+Constructs a new C<AnyEvent::RFXCOM::RX> object.  The supported
+parameters are:
+
+=over
+
+=item device
+
+The name of the device to connect to.  The value can be a tty device
+name or a C<hostname:port> for TCP-based RFXCOM receivers.  The
+default is C</dev/rfxcom-rx>.  See C<Device::RFXCOM::RX> for more
+information.
+
+=item callback
+
+The callback to execute when a message is received.
+
+=back
+
+=cut
+
 sub new {
   my ($pkg, %p) = @_;
   my $self = $pkg->SUPER::new(%p);
   croak $pkg.'->new: callback parameter is required' unless ($self->{callback});
   $self;
 }
+
+=head2 C<start()>
+
+This method attempts to connect to the RFXCOM device.  It returns a
+C<condvar> that can be used to wait for the initialization to complete.
+
+=cut
 
 sub start {
   my $self = shift;
@@ -97,6 +126,13 @@ sub start {
   return $user_cv;
 }
 
+=head2 C<cleanup()>
+
+This method attempts to destroy any resources in the event of a
+disconnection or fatal error.  It is not yet implemented.
+
+=cut
+
 sub cleanup {
 }
 
@@ -128,18 +164,25 @@ sub _open_tcp_port {
   return $cv;
 }
 
+=head2 C<anyevent_read_type()>
+
+This method is used to register an L<AnyEvent::Handle> read type
+method to read RFXCOM messages.
+
+=cut
+
 sub anyevent_read_type {
   my ($handle, $cb, $self) = @_;
 
   my $cache = {};
   sub {
     my $rbuf = \$handle->{rbuf};
-  REDO:
-    print STDERR "Before: ", (unpack 'H*', $$rbuf||''), "\n" if DEBUG;
-    my $res = $self->read_one($rbuf) or return;
-    print STDERR "After: ", (unpack 'H*', $$rbuf), "\n" if DEBUG;
-    $res = $cb->($res) and return $res;
-    goto REDO;
+    while (1) { # read all message from the buffer
+      print STDERR "Before: ", (unpack 'H*', $$rbuf||''), "\n" if DEBUG;
+      my $res = $self->read_one($rbuf) or return;
+      print STDERR "After: ", (unpack 'H*', $$rbuf), "\n" if DEBUG;
+      $res = $cb->($res) and return $res;
+    }
   }
 }
 
