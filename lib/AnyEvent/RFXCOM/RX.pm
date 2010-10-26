@@ -74,56 +74,72 @@ C<condvar> that can be used to wait for the initialization to complete.
 
 sub start {
   my $self = shift;
-  croak((ref $self).'->start called twice') if ($self->{handle});
+  croak $self.'->start called twice' if ($self->{started}++);
   my $user_cv = AnyEvent->condvar;
   my $cv = AnyEvent->condvar;
+  my $callback = $self->{callback};
   $cv->cb(sub {
             my $fh = $_[0]->recv;
             print STDERR "start cb @_\n" if DEBUG;
-            my $hd = $self->{handle} =
+            my $handle; $handle =
               AnyEvent::Handle->new(
-                                    fh => $fh,
-                                    on_error => sub {
-                                      my ($handle, $fatal, $msg) = @_;
-                                      print STDERR "handle error $msg\n"
-                                        if DEBUG;
-                                      $handle->destroy;
-                                      if ($fatal) {
-                                        $self->cleanup($msg);
-                                      }
-                                    },
-                                    on_eof   => sub {
-                                      my ($handle) = @_;
-                                      print STDERR "handle eof\n" if DEBUG;
-                                      $handle->destroy;
-                                      $self->cleanup('connection closed');
-                                    },
-                                   );
-            $self->{handle}->push_write(pack 'H*', 'F020');
+                fh => $fh,
+                on_error => sub {
+                  my ($handle, $fatal, $msg) = @_;
+                  print STDERR $handle.": error $msg\n" if DEBUG;
+                  $handle->destroy;
+                  if ($fatal) {
+                    $self->cleanup($msg);
+                  }
+                },
+                on_eof => sub {
+                  my ($handle) = @_;
+                  print STDERR $handle.": eof\n" if DEBUG;
+                  $handle->destroy;
+                  $self->cleanup('connection closed');
+                },
+                on_rtimeout => sub {
+                  my $rbuf = \$handle->{rbuf};
+                  print STDERR $handle, ": discarding '",
+                    (unpack 'H*', $$rbuf), "'\n" if DEBUG;
+                  $$rbuf = '';
+                  $handle->rtimeout(0);
+                },
+                on_timeout => sub {
+                  print STDERR $handle.": Clearing duplicate cache\n" if DEBUG;
+                  $self->{_cache} = {};
+                  $handle->timeout(0);
+                },
+              );
+            $handle->push_write(pack 'H*', 'F020');
             $self->{_waiting} = 1;
-            $self->{handle}->push_read(ref $self => $self,
+            $handle->push_read(ref $self => $self,
               sub {
-                $self->{handle}->push_write(pack 'H*', 'F041');
+                $handle->push_write(pack 'H*', 'F041');
                 $self->{_waiting} = 1;
-                $self->{handle}->push_read(ref $self => $self,
+                $handle->push_read(ref $self => $self,
                   sub {
-                    $self->{handle}->push_write(pack 'H*', 'F02A');
+                    $handle->push_write(pack 'H*', 'F02A');
                     $self->{_waiting} = 1;
-                    $self->{handle}->push_read(ref $self => $self,
+                    $handle->push_read(ref $self => $self,
                       sub {
-                        $self->{callback}->(@_);
+                        $callback->(@_);
                         return;
                       });
-                    $self->{callback}->(@_);
+                    $callback->(@_);
                     return 1;
                   });
-                $self->{callback}->(@_);
+                $callback->(@_);
                 return 1;
               });
             $user_cv->send(1);
           });
   $self->_open($cv);
   return $user_cv;
+}
+
+sub DESTROY {
+  $_[0]->cleanup;
 }
 
 =head2 C<cleanup()>
@@ -134,6 +150,10 @@ disconnection or fatal error.  It is not yet implemented.
 =cut
 
 sub cleanup {
+  my ($self, $error) = @_;
+  print STDERR $self."->cleanup\n" if DEBUG;
+  undef $self->{discard_timer};
+  undef $self->{dup_timer};
 }
 
 sub _open_serial_port {
@@ -164,6 +184,10 @@ sub _open_tcp_port {
   return $cv;
 }
 
+sub _time_now {
+  AnyEvent->now;
+}
+
 =head2 C<anyevent_read_type()>
 
 This method is used to register an L<AnyEvent::Handle> read type
@@ -174,12 +198,20 @@ method to read RFXCOM messages.
 sub anyevent_read_type {
   my ($handle, $cb, $self) = @_;
 
-  my $cache = {};
   sub {
     my $rbuf = \$handle->{rbuf};
+    $handle->rtimeout($self->{discard_timeout});
+    $handle->timeout($self->{dup_timeout});
     while (1) { # read all message from the buffer
       print STDERR "Before: ", (unpack 'H*', $$rbuf||''), "\n" if DEBUG;
-      my $res = $self->read_one($rbuf) or return;
+      my $res = $self->read_one($rbuf);
+      unless ($res) {
+        if (defined $res) {
+          print STDERR "Ignoring duplicate\n" if DEBUG;
+          next;
+        }
+        return;
+      }
       print STDERR "After: ", (unpack 'H*', $$rbuf), "\n" if DEBUG;
       $res = $cb->($res) and return $res;
     }

@@ -17,7 +17,7 @@ BEGIN {
   if ($@) {
     import Test::More skip_all => 'Missing AnyEvent module(s): '.$@;
   }
-  import Test::More tests => 43;
+  import Test::More tests => 53;
 }
 
 my @connections =
@@ -27,7 +27,11 @@ my @connections =
     'F041' => '41',
     'F02A' => '2c', # mode is still 0x41 really but differs here for coverage
     '' => '20609f08f7',
+    '' => '20609f08f7', # duplicate
     '' => '80',
+    '' => '20609f', # buffer should be discarded by timeout
+    '' => '',
+    '' => '20609f08f7', # not duplicate
    ],
 
   );
@@ -45,10 +49,6 @@ my $server = tcp_server undef, undef, sub {
                                     $handle->destroy; # destroy handle
                                     warn "done.\n";
                                   },
-                                  timeout => 1,
-                                  on_timeout => sub {
-                                    die "server timeout\n";
-                                  }
                                  );
   my $actions = shift @connections;
   unless ($actions && @$actions) {
@@ -69,12 +69,22 @@ sub handle_connection {
       return $handle->push_shutdown;
     };
   if ($recv eq '') {
-    print STDERR "Sending: ", $send if DEBUG;
-    $send = pack "H*", $send;
-    print STDERR "Sending ", length $send, " bytes\n" if DEBUG;
-    $handle->push_write($send);
-    handle_connection($handle, $actions);
-    return;
+    if ($send eq '') {
+      print STDERR "Pausing: 0.7\n" if DEBUG;
+      # pause to overcome duplicate timeout
+      my $w; $w = AnyEvent->timer(after => 0.7, cb => sub {
+                                    handle_connection($handle, $actions);
+                                    undef $w;
+                                  });
+      return;
+    } else {
+      print STDERR "Sending: ", $send if DEBUG;
+      $send = pack "H*", $send;
+      print STDERR " (", length $send, " bytes)\n" if DEBUG;
+      $handle->push_write($send);
+      handle_connection($handle, $actions);
+      return;
+    }
   }
   my $expect = $recv;
   print STDERR "Waiting for ", $recv, "\n" if DEBUG;
@@ -156,13 +166,28 @@ my @tests =
      is($res->length, 0, '... correct data length');
      is($res->hex_data, '', '... no data');
      is($res->summary, 'slave empty 80.', '... correct summary string');
+   },
+   sub {
+     my ($res) = @_;
+     is($res->type, 'x10', 'got 2nd x10 message');
+     is($res->header_byte, 0x20, '... correct header_byte');
+     ok($res->master, '... from master receiver');
+     is($res->length, 4, '... correct data length');
+     is($res->hex_data, '609f08f7', '... correct data');
+     is($res->summary, 'master x10 20.609f08f7: x10/a3/on',
+        '... correct summary string');
+
+     is(scalar @{$res->messages}, 1, '... correct number of messages');
+     my $message = $res->messages->[0];
+     is($message->type, 'x10', '... correct message type');
+     is($message->command, 'on', '... correct message command');
+     is($message->device, 'a3', '... correct message device');
      $cv->send(1);
    },
 );
 
 my $rx = AnyEvent::RFXCOM::RX->new(device => $addr,
                                    callback => sub { (shift@tests)->(@_); 1; });
-
 ok($rx, 'instantiate AnyEvent::RFXCOM::RX object');
 
 $rx->start;
@@ -170,8 +195,10 @@ $rx->start;
 $cv->recv;
 
 eval { $rx->start; };
-like($@, qr/^AnyEvent::RFXCOM::RX->start called twice/,
+like($@, qr/^AnyEvent::RFXCOM::RX=HASH\([^)]+\)->start called twice/,
      '... start called twice error');
+
+#$rx->cleanup;
 
 undef $server;
 
@@ -185,7 +212,6 @@ undef $rx;
 eval { AnyEvent::RFXCOM::RX->new(device => $addr); };
 like($@, qr/^AnyEvent::RFXCOM::RX->new: callback parameter is required/,
      '... callback parameter is required');
-
 
 $rx = AnyEvent::RFXCOM::RX->new(device => $addr, callback => sub {});
 ok($rx, 'instantiate Device::RFXCOM::RX object');
