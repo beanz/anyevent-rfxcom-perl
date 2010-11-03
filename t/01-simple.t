@@ -17,7 +17,7 @@ BEGIN {
   if ($@) {
     import Test::More skip_all => 'Missing AnyEvent module(s): '.$@;
   }
-  import Test::More tests => 53;
+  import Test::More tests => 64;
 }
 
 my @connections =
@@ -160,6 +160,23 @@ my @tests =
    },
    sub {
      my ($res) = @_;
+     is($res->type, 'x10', 'got duplicate x10 message');
+     ok($res->duplicate, '... is duplicate');
+     is($res->header_byte, 0x20, '... correct header_byte');
+     ok($res->master, '... from master receiver');
+     is($res->length, 4, '... correct data length');
+     is($res->hex_data, '609f08f7', '... correct data');
+     is($res->summary, 'master x10 20.609f08f7(dup): x10/a3/on',
+        '... correct summary string');
+
+     is(scalar @{$res->messages}, 1, '... correct number of messages');
+     my $message = $res->messages->[0];
+     is($message->type, 'x10', '... correct message type');
+     is($message->command, 'on', '... correct message command');
+     is($message->device, 'a3', '... correct message device');
+   },
+   sub {
+     my ($res) = @_;
      is($res->type, 'empty', 'got empty message');
      is($res->header_byte, 0x80, '... correct header_byte');
      ok(!$res->master, '... from slave receiver');
@@ -169,7 +186,7 @@ my @tests =
    },
    sub {
      my ($res) = @_;
-     is($res->type, 'x10', 'got 2nd x10 message');
+     is($res->type, 'x10', 'got 3nd x10 message');
      is($res->header_byte, 0x20, '... correct header_byte');
      ok($res->master, '... from master receiver');
      is($res->length, 4, '... correct data length');
