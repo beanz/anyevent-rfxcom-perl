@@ -33,7 +33,6 @@ use AnyEvent;
 use AnyEvent::Handle;
 use AnyEvent::Socket;
 use Carp qw/croak/;
-use Try::Tiny;
 
 =method C<new(%params)>
 
@@ -110,47 +109,23 @@ sub start {
                   $handle->timeout(0);
                 },
               );
-            $self->_start_init($handle, $user_cv, qw/F020 F041 F02A/);
+            $self->{handle} = $handle;
+            $handle->push_read(ref $self => $self,
+                               sub {
+                                 $callback->(@_) if ($callback);
+                                 $self->_write_now();
+                                 return;
+                               });
+            $self->_init(sub { $user_cv->send(1); });
           });
   $self->_open($cv);
   return $user_cv;
 }
 
-sub _start_init {
-  my ($self, $handle, $user_cv, @init) = @_;
-  my $callback = $self->{callback};
-  my $init_fn; $init_fn = sub {
-    my $msg = shift @init;
-    print STDERR $self." init sending $msg\n" if DEBUG;
-    $handle->push_write(pack 'H*', $msg);
-    $self->{_waiting} = 1;
-    if (scalar @init) {
-      $handle->push_read(ref $self => $self,
-                         sub {
-                           print STDERR $self." init $msg ack'd\n"
-                             if DEBUG;
-                           $init_fn->();
-                           $callback->(@_);
-                           return 1;
-                         });
-    } else {
-      $handle->push_read(ref $self => $self,
-                         sub {
-                           print STDERR $self." initialized\n"
-                             if DEBUG;
-                           undef $init_fn;
-                           $callback->(@_);
-                           $user_cv->send(1);
-                           $handle->push_read(ref $self => $self,
-                                              sub {
-                                                $callback->(@_);
-                                                return;
-                                              });
-                           return 1;
-                         });
-    }
-  };
-  $init_fn->();
+sub _real_write {
+  my ($self, $rec) = @_;
+  print STDERR "Sending: ", $rec->{hex}, ' ', ($rec->{desc}||''), "\n" if DEBUG;
+  $self->{handle}->push_write($rec->{raw});
 }
 
 sub DESTROY {
