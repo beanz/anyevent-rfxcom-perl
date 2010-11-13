@@ -32,11 +32,10 @@ use base 'Device::RFXCOM::RX';
 use AnyEvent;
 use AnyEvent::Handle;
 use AnyEvent::Socket;
-use Device::RFXCOM::RX;
 use Carp qw/croak/;
 use Try::Tiny;
 
-=head2 C<new(%params)>
+=method C<new(%params)>
 
 Constructs a new C<AnyEvent::RFXCOM::RX> object.  The supported
 parameters are:
@@ -65,7 +64,7 @@ sub new {
   $self;
 }
 
-=head2 C<start()>
+=method C<start()>
 
 This method attempts to connect to the RFXCOM device.  It returns a
 C<condvar> that can be used to wait for the initialization to complete.
@@ -111,28 +110,39 @@ sub start {
                   $handle->timeout(0);
                 },
               );
-            $handle->push_write(pack 'H*', 'F020');
-            $self->{_waiting} = 1;
-            $handle->push_read(ref $self => $self,
-              sub {
-                $handle->push_write(pack 'H*', 'F041');
-                $self->{_waiting} = 1;
+            my @init = ('F020', 'F041', 'F02A');
+            my $init_fn; $init_fn = sub {
+              my $msg = shift @init;
+              print STDERR $self." init sending $msg\n" if DEBUG;
+              $handle->push_write(pack 'H*', $msg);
+              $self->{_waiting} = 1;
+              if (scalar @init) {
                 $handle->push_read(ref $self => $self,
-                  sub {
-                    $handle->push_write(pack 'H*', 'F02A');
-                    $self->{_waiting} = 1;
-                    $handle->push_read(ref $self => $self,
-                      sub {
-                        $callback->(@_);
-                        return;
-                      });
-                    $callback->(@_);
-                    return 1;
-                  });
-                $callback->(@_);
-                return 1;
-              });
-            $user_cv->send(1);
+                                   sub {
+                                     print STDERR $self." init $msg ack'd\n"
+                                       if DEBUG;
+                                     $init_fn->();
+                                     $callback->(@_);
+                                     return 1;
+                                   });
+              } else {
+                $handle->push_read(ref $self => $self,
+                                   sub {
+                                     print STDERR $self." initialized\n"
+                                       if DEBUG;
+                                     undef $init_fn;
+                                     $callback->(@_);
+                                     $user_cv->send(1);
+                                     $handle->push_read(ref $self => $self,
+                                                        sub {
+                                                          $callback->(@_);
+                                                          return;
+                                                        });
+                                     return 1;
+                                   });
+              }
+            };
+            $init_fn->();
           });
   $self->_open($cv);
   return $user_cv;
@@ -142,7 +152,7 @@ sub DESTROY {
   $_[0]->cleanup;
 }
 
-=head2 C<cleanup()>
+=method C<cleanup()>
 
 This method attempts to destroy any resources in the event of a
 disconnection or fatal error.  It is not yet implemented.
@@ -188,7 +198,7 @@ sub _time_now {
   AnyEvent->now;
 }
 
-=head2 C<anyevent_read_type()>
+=method C<anyevent_read_type()>
 
 This method is used to register an L<AnyEvent::Handle> read type
 method to read RFXCOM messages.
