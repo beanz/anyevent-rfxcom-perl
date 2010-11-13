@@ -110,42 +110,47 @@ sub start {
                   $handle->timeout(0);
                 },
               );
-            my @init = ('F020', 'F041', 'F02A');
-            my $init_fn; $init_fn = sub {
-              my $msg = shift @init;
-              print STDERR $self." init sending $msg\n" if DEBUG;
-              $handle->push_write(pack 'H*', $msg);
-              $self->{_waiting} = 1;
-              if (scalar @init) {
-                $handle->push_read(ref $self => $self,
-                                   sub {
-                                     print STDERR $self." init $msg ack'd\n"
-                                       if DEBUG;
-                                     $init_fn->();
-                                     $callback->(@_);
-                                     return 1;
-                                   });
-              } else {
-                $handle->push_read(ref $self => $self,
-                                   sub {
-                                     print STDERR $self." initialized\n"
-                                       if DEBUG;
-                                     undef $init_fn;
-                                     $callback->(@_);
-                                     $user_cv->send(1);
-                                     $handle->push_read(ref $self => $self,
-                                                        sub {
-                                                          $callback->(@_);
-                                                          return;
-                                                        });
-                                     return 1;
-                                   });
-              }
-            };
-            $init_fn->();
+            $self->_start_init($handle, $user_cv, qw/F020 F041 F02A/);
           });
   $self->_open($cv);
   return $user_cv;
+}
+
+sub _start_init {
+  my ($self, $handle, $user_cv, @init) = @_;
+  my $callback = $self->{callback};
+  my $init_fn; $init_fn = sub {
+    my $msg = shift @init;
+    print STDERR $self." init sending $msg\n" if DEBUG;
+    $handle->push_write(pack 'H*', $msg);
+    $self->{_waiting} = 1;
+    if (scalar @init) {
+      $handle->push_read(ref $self => $self,
+                         sub {
+                           print STDERR $self." init $msg ack'd\n"
+                             if DEBUG;
+                           $init_fn->();
+                           $callback->(@_);
+                           return 1;
+                         });
+    } else {
+      $handle->push_read(ref $self => $self,
+                         sub {
+                           print STDERR $self." initialized\n"
+                             if DEBUG;
+                           undef $init_fn;
+                           $callback->(@_);
+                           $user_cv->send(1);
+                           $handle->push_read(ref $self => $self,
+                                              sub {
+                                                $callback->(@_);
+                                                return;
+                                              });
+                           return 1;
+                         });
+    }
+  };
+  $init_fn->();
 }
 
 sub DESTROY {
