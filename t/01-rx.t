@@ -17,7 +17,7 @@ BEGIN {
   if ($@) {
     import Test::More skip_all => 'Missing AnyEvent module(s): '.$@;
   }
-  import Test::More tests => 64;
+  import Test::More tests => 62;
 }
 
 my @connections =
@@ -207,15 +207,7 @@ my $rx = AnyEvent::RFXCOM::RX->new(device => $addr,
                                    callback => sub { (shift@tests)->(@_); 1; });
 ok($rx, 'instantiate AnyEvent::RFXCOM::RX object');
 
-$rx->start;
-
 $cv->recv;
-
-eval { $rx->start; };
-like($@, qr/^AnyEvent::RFXCOM::RX=HASH\([^)]+\)->start called twice/,
-     '... start called twice error');
-
-#$rx->cleanup;
 
 undef $server;
 
@@ -230,9 +222,11 @@ eval { AnyEvent::RFXCOM::RX->new(device => $addr); };
 like($@, qr/^AnyEvent::RFXCOM::RX->new: callback parameter is required/,
      '... callback parameter is required');
 
-$rx = AnyEvent::RFXCOM::RX->new(device => $addr, callback => sub {});
-ok($rx, 'instantiate Device::RFXCOM::RX object');
-eval { $rx->start()->recv };
+
+$cv = AnyEvent->condvar;
+$rx = AnyEvent::RFXCOM::RX->new(device => $addr, callback => sub {},
+                               init_callback => sub { $cv->send(1); });
+eval { $cv->recv };
 like($@, qr!^AnyEvent::RFXCOM::RX: Can't connect RFXCOM device \Q$addr\E:!o,
      'connection failed');
 

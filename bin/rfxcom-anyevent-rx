@@ -33,13 +33,8 @@ $|=1; # don't buffer output
 
 my $device = shift or die "Usage: $0 [device] [key=value] ...\n";
 
-my $rx =
-  AnyEvent::RFXCOM::RX->new(device => $device,
-                            callback => sub { print $_[0]->summary, "\n" },
-                            map { split /=/ } @ARGV);
-
-my $cv = $rx->start;
-
-$cv->recv;
+AnyEvent::RFXCOM::RX->new(device => $device,
+                          callback => sub { print $_[0]->summary, "\n" },
+                          map { split /=/ } @ARGV);
 
 AnyEvent->condvar->recv;

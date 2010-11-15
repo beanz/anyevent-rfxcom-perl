@@ -7,15 +7,8 @@ package AnyEvent::RFXCOM::RX;
 =head1 SYNOPSIS
 
   # Create simple RFXCOM message reader with logging callback
-  my $rx =
-     AnyEvent::RFXCOM::RX->new(callback => sub { print $_[0]->summary },
-                               device => '/dev/ttyUSB0');
-
-  # initiate connection to device
-  my $cv = $rx->start;
-
-  # wait for it to complete (optional)
-  $cv->recv;
+  AnyEvent::RFXCOM::RX->new(callback => sub { print $_[0]->summary },
+                            device => '/dev/ttyUSB0');
 
   # start event loop
   AnyEvent->condvar->recv;
@@ -58,24 +51,14 @@ The callback to execute when a message is received.
 
 sub new {
   my ($pkg, %p) = @_;
+  croak $pkg.'->new: callback parameter is required' unless ($p{callback});
   my $self = $pkg->SUPER::new(%p);
-  croak $pkg.'->new: callback parameter is required' unless ($self->{callback});
   $self;
 }
 
-=method C<start()>
-
-This method attempts to connect to the RFXCOM device.  It returns a
-C<condvar> that can be used to wait for the initialization to complete.
-
-=cut
-
-sub start {
+sub _open {
   my $self = shift;
-  croak $self.'->start called twice' if ($self->{started}++);
-  my $user_cv = AnyEvent->condvar;
   my $cv = AnyEvent->condvar;
-  my $callback = $self->{callback};
   $cv->cb(sub {
             my $fh = $_[0]->recv;
             print STDERR "start cb @_\n" if DEBUG;
@@ -112,14 +95,16 @@ sub start {
             $self->{handle} = $handle;
             $handle->push_read(ref $self => $self,
                                sub {
-                                 $callback->(@_) if ($callback);
+                                 $self->{callback}->(@_);
                                  $self->_write_now();
                                  return;
                                });
-            $self->_init(sub { $user_cv->send(1); });
+            undef $self->{_waiting}; # uncork queued writes
+            $self->_write_now();
           });
-  $self->_open($cv);
-  return $user_cv;
+  $self->{_waiting} = { desc => 'fake for async open' };
+  $self->SUPER::_open($cv);
+  return 1;
 }
 
 sub _real_write {
