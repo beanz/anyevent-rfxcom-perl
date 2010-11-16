@@ -99,7 +99,7 @@ sub _open {
                                  $self->_write_now();
                                  return;
                                });
-            undef $self->{_waiting}; # uncork queued writes
+            delete $self->{_waiting}; # uncork queued writes
             $self->_write_now();
           });
   $self->{_waiting} = { desc => 'fake for async open' };
