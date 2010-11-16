@@ -1,0 +1,50 @@
+#!/usr/bin/perl
+
+# ABSTRACT: rfxcom-anyevent-tx example script to read from an RFXCOM receiver
+
+=head1 SYNOPSIS
+
+  # read from USB tty device
+  rfxcom-anyevent-tx /dev/ttyUSB0
+
+  # read from USB device with nicer name see Device::RFXCOM::TX(3)
+  rfxcom-anyevent-tx /dev/rfxcom-tx
+
+  # read from network/wireless device
+  rfxcom-anyevent-tx 10.0.0.1:10001
+
+=head1 DESCRIPTION
+
+This script is an example of the usage of the L<AnyEvent::RFXCOM::TX>
+api.  It simply initializes the receiver and writes a summary of the
+received RF messages to stdout.  The keys and values given on the
+command line become the parameter hash for the
+L<AnyEvent::RFXCOM::TX#new> constructor and are documented in that
+module.
+
+=cut
+
+use warnings;
+use strict;
+package main;
+use AnyEvent::RFXCOM::TX;
+
+$|=1; # don't buffer output
+
+my $device = shift or die "Usage: $0 [device] [key=value] ...\n";
+
+my $tx =
+  AnyEvent::RFXCOM::TX->new(device => $device,
+                            map { split /=/ } @ARGV);
+
+my $w;
+$w = AnyEvent->io(fh => \*STDIN, poll => 'r',
+                  cb => sub {
+                    my $line = <STDIN>;
+                    exit unless (defined $line);
+                    chomp $line;
+                    my $cv = $tx->transmit(split /[\t =]/, $line);
+                    $cv->cb(sub { print "sent $line\n" });
+                  });
+
+AnyEvent->condvar->recv;
