@@ -21,10 +21,9 @@ AnyEvent module for handling communication with an RFXCOM receiver.
 
 use 5.010;
 use constant DEBUG => $ENV{ANYEVENT_RFXCOM_RX_DEBUG};
-use base 'Device::RFXCOM::RX';
+use base qw/AnyEvent::RFXCOM::Base Device::RFXCOM::RX/;
 use AnyEvent;
 use AnyEvent::Handle;
-use AnyEvent::Socket;
 use Carp qw/croak/;
 
 =method C<new(%params)>
@@ -129,38 +128,6 @@ sub cleanup {
   print STDERR $self."->cleanup\n" if DEBUG;
   undef $self->{discard_timer};
   undef $self->{dup_timer};
-}
-
-sub _open_serial_port {
-  my ($self, $cv) = @_;
-  my $fh = $self->SUPER::_open_serial_port;
-  $cv->send($fh);
-  return $cv;
-}
-
-sub _open_tcp_port {
-  my ($self, $cv) = @_;
-  my $dev = $self->{device};
-  print STDERR "Opening $dev as tcp socket\n" if DEBUG;
-  require AnyEvent::Socket; import AnyEvent::Socket;
-  my ($host, $port) = split /:/, $dev, 2;
-  $port = $self->{port} unless (defined $port);
-  $self->{sock} = tcp_connect $host, $port, sub {
-    my $fh = shift
-      or do {
-        my $err = (ref $self).": Can't connect RFXCOM device $dev: $!";
-        $self->cleanup($err);
-        $cv->croak($err);
-      };
-
-    warn "Connected\n" if DEBUG;
-    $cv->send($fh);
-  };
-  return $cv;
-}
-
-sub _time_now {
-  AnyEvent->now;
 }
 
 =method C<anyevent_read_type()>
