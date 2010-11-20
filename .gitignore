@@ -3,3 +3,4 @@
 /.tdldb.bak
 /temp
 /.build
+/libanyevent-rfxcom-perl_*

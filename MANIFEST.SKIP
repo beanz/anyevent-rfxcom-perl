@@ -1,2 +1,3 @@
 ^temp/
 .*~
+^libanyevent-rfxcom-perl_.*
