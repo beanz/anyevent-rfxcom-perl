@@ -71,7 +71,7 @@ sub _open_tcp_port {
   $self->{sock} = tcp_connect $host, $port, sub {
     my $fh = shift
       or do {
-        my $err = (ref $self).": Can't connect RFXCOM device $dev: $!";
+        my $err = (ref $self).": Can't connect to device $dev: $!";
         $self->cleanup($err);
         $cv->croak($err);
       };

@@ -227,7 +227,7 @@ $cv = AnyEvent->condvar;
 $rx = AnyEvent::RFXCOM::RX->new(device => $addr, callback => sub {},
                                init_callback => sub { $cv->send(1); });
 eval { $cv->recv };
-like($@, qr!^AnyEvent::RFXCOM::RX: Can't connect RFXCOM device \Q$addr\E:!o,
+like($@, qr!^AnyEvent::RFXCOM::RX: Can't connect to device \Q$addr\E:!o,
      'connection failed');
 
 #use Data::Dumper; print Data::Dumper->Dump([$res],[qw/res/]);exit;
