@@ -1,0 +1,8 @@
+libanyevent-rfxcom-perl (1.103240-1) unstable; urgency=low
+
+  * Support for Digimax sensors.
+  * More flexible handling of duplicates.
+  * Initial CPAN release extracted from my code at http://www.xpl-perl.org.uk/
+
+ -- Mark Hindess <soft-debian@temporalanomaly.com>  Sat, 20 Nov 2010 20:57:13 +0000
+
