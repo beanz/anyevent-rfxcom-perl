@@ -1,6 +1,7 @@
 #!/usr/bin/perl
 
-# ABSTRACT: rfxcom-anyevent-rx example script to read from an RFXCOM receiver
+# ABSTRACT: example script to read from an RFXCOM receiver
+# PODNAME: rfxcom-anyevent-rx
 
 =head1 SYNOPSIS
 
@@ -26,7 +27,6 @@ module.
 
 use warnings;
 use strict;
-package main;
 use AnyEvent::RFXCOM::RX;
 
 $|=1; # don't buffer output
