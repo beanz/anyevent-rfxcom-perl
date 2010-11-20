@@ -2,7 +2,7 @@ use strict;
 use warnings;
 package AnyEvent::RFXCOM::TX;
 
-# ABSTRACT: AnyEvent::RFXCOM::TX module for an RFXCOM transmitter
+# ABSTRACT: AnyEvent module for an RFXCOM transmitter
 
 =head1 SYNOPSIS
 
