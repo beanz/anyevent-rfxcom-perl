@@ -92,7 +92,7 @@ sub DESTROY {
 =method C<cleanup()>
 
 This method attempts to destroy any resources in the event of a
-disconnection or fatal error.  It is not yet implemented.
+disconnection or fatal error.
 
 =cut
 
