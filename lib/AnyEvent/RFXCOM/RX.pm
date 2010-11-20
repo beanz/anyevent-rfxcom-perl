@@ -55,61 +55,34 @@ sub new {
   $self;
 }
 
-sub _open {
+sub _handle_setup {
   my $self = shift;
-  my $cv = AnyEvent->condvar;
-  $cv->cb(sub {
-            my $fh = $_[0]->recv;
-            print STDERR "start cb @_\n" if DEBUG;
-            my $handle; $handle =
-              AnyEvent::Handle->new(
-                fh => $fh,
-                on_error => sub {
-                  my ($handle, $fatal, $msg) = @_;
-                  print STDERR $handle.": error $msg\n" if DEBUG;
-                  $handle->destroy;
-                  if ($fatal) {
-                    $self->cleanup($msg);
-                  }
-                },
-                on_eof => sub {
-                  my ($handle) = @_;
-                  print STDERR $handle.": eof\n" if DEBUG;
-                  $handle->destroy;
-                  $self->cleanup('connection closed');
-                },
-                on_rtimeout => sub {
-                  my $rbuf = \$handle->{rbuf};
-                  print STDERR $handle, ": discarding '",
-                    (unpack 'H*', $$rbuf), "'\n" if DEBUG;
-                  $$rbuf = '';
-                  $handle->rtimeout(0);
-                },
-                on_timeout => sub {
-                  print STDERR $handle.": Clearing duplicate cache\n" if DEBUG;
-                  $self->{_cache} = {};
-                  $handle->timeout(0);
-                },
-              );
-            $self->{handle} = $handle;
-            $handle->push_read(ref $self => $self,
-                               sub {
-                                 $self->{callback}->(@_);
-                                 $self->_write_now();
-                                 return;
-                               });
-            delete $self->{_waiting}; # uncork queued writes
-            $self->_write_now();
-          });
-  $self->{_waiting} = { desc => 'fake for async open' };
-  $self->SUPER::_open($cv);
-  return 1;
+  my $handle = $self->{handle};
+  $handle->on_rtimeout(sub {
+    my $rbuf = \$handle->{rbuf};
+    print STDERR $handle, ": discarding '",
+      (unpack 'H*', $$rbuf), "'\n" if DEBUG;
+    $$rbuf = '';
+    $handle->rtimeout(0);
+  });
+  $handle->on_timeout(sub {
+    print STDERR $handle.": Clearing duplicate cache\n" if DEBUG;
+    $self->{_cache} = {};
+    $handle->timeout(0);
+  });
+  $handle->push_read(ref $self => $self,
+                     sub {
+                       $self->{callback}->(@_);
+                       $self->_write_now();
+                       return;
+                     });
+  1;
 }
 
-sub _real_write {
-  my ($self, $rec) = @_;
-  print STDERR "Sending: ", $rec->{hex}, ' ', ($rec->{desc}||''), "\n" if DEBUG;
-  $self->{handle}->push_write($rec->{raw});
+sub _open {
+  my $self = shift;
+  $self->SUPER::_open($self->_open_condvar);
+  return 1;
 }
 
 sub DESTROY {

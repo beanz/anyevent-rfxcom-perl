@@ -21,6 +21,39 @@ use constant {
 
 use AnyEvent::Socket;
 
+sub _open_condvar {
+  my $self = shift;
+  my $cv = AnyEvent->condvar;
+  $cv->cb(sub {
+            my $fh = $_[0]->recv;
+            print STDERR "start cb $fh @_\n" if DEBUG;
+            my $handle; $handle =
+              AnyEvent::Handle->new(
+                fh => $fh,
+                on_error => sub {
+                  my ($handle, $fatal, $msg) = @_;
+                  print STDERR $handle.": error $msg\n" if DEBUG;
+                  $handle->destroy;
+                  if ($fatal) {
+                    $self->cleanup($msg);
+                  }
+                },
+                on_eof => sub {
+                  my ($handle) = @_;
+                  print STDERR $handle.": eof\n" if DEBUG;
+                  $handle->destroy;
+                  $self->cleanup('connection closed');
+                },
+              );
+            $self->{handle} = $handle;
+            $self->_handle_setup();
+            delete $self->{_waiting}; # uncork queued writes
+            $self->_write_now();
+          });
+  $self->{_waiting} = { desc => 'fake for async open' };
+  return $cv;
+}
+
 sub _open_serial_port {
   my ($self, $cv) = @_;
   my $fh = $self->SUPER::_open_serial_port;
@@ -47,6 +80,13 @@ sub _open_tcp_port {
     $cv->send($fh);
   };
   return $cv;
+}
+
+sub _real_write {
+  my ($self, $rec) = @_;
+  print STDERR "Sending: ", $rec->{hex}, ' ', ($rec->{desc}||''), "\n" if DEBUG;
+  $self->{handle}->push_write($rec->{raw});
+  $rec->{cv}->begin if ($rec->{cv});
 }
 
 sub _time_now {

@@ -74,71 +74,39 @@ There is no option to enable homeeasy messages because they use either
 the klik-on klik-off protocol or homeeasy specific commands in order
 to trigger them.
 
-=method C<start()>
-
-This method attempts to connect to the RFXCOM device.  It returns a
-C<condvar> that can be used to wait for the initialization to complete.
-
 =cut
 
-sub _open {
+sub _handle_setup {
   my $self = shift;
-  my $cv = AnyEvent->condvar;
-  $cv->cb(sub {
-            my $fh = $_[0]->recv;
-            print STDERR "start cb $fh @_\n" if DEBUG;
-            my $handle; $handle =
-              AnyEvent::Handle->new(
-                fh => $fh,
-                on_error => sub {
-                  my ($handle, $fatal, $msg) = @_;
-                  print STDERR $handle.": error $msg\n" if DEBUG;
-                  $handle->destroy;
-                  if ($fatal) {
-                    $self->cleanup($msg);
-                  }
-                },
-                on_eof => sub {
-                  my ($handle) = @_;
-                  print STDERR $handle.": eof\n" if DEBUG;
-                  $handle->destroy;
-                  $self->cleanup('connection closed');
-                },
-                on_rtimeout => sub {
-                  print STDERR $handle.": no ack\n" if DEBUG;
-                  $handle->rtimeout(0);
-                  $self->_init_mode();
-                },
-                on_drain => sub {
-                  return unless (defined $handle);
-                  print STDERR $handle.": on drain\n" if DEBUG;
-                  $handle->rtimeout($self->{ack_timeout});
-                  $handle->push_read(chunk => 1,
-                      sub {
-                        my ($handle, $data) = @_;
-                        $handle->rtimeout(0);
-                        $self->{callback}->($data) if ($self->{callback});
-                        print STDERR $handle.": read ",
-                          (unpack 'H*', $data), "\n" if DEBUG;
-                        my $wait_record = $self->{_waiting};
-                        if ($wait_record) {
-                          my ($time, $rec) = @$wait_record;
-                          push @{$rec->{result}}, $data;
-                          my $cv = $rec->{cv};
-                          $cv->end if ($cv);
-                        }
-                        $self->_write_now();
-                        return;
-                      });
-                },
-              );
-            $self->{handle} = $handle;
-            delete $self->{_waiting}; # uncork queued writes
-            $self->_write_now();
-          });
-  $self->{_waiting} = { desc => 'fake for async open' };
-  $self->SUPER::_open($cv);
-  return 1;
+  my $handle = $self->{handle};
+  $handle->on_rtimeout(sub {
+    print STDERR $handle.": no ack\n" if DEBUG;
+    $handle->rtimeout(0);
+    $self->_init_mode();
+  });
+  $handle->on_drain(sub {
+    return unless (defined $handle);
+    print STDERR $handle.": on drain\n" if DEBUG;
+    $handle->rtimeout($self->{ack_timeout});
+    $handle->push_read(chunk => 1,
+      sub {
+        my ($handle, $data) = @_;
+        $handle->rtimeout(0);
+        $self->{callback}->($data) if ($self->{callback});
+        print STDERR $handle.": read ",
+          (unpack 'H*', $data), "\n" if DEBUG;
+        my $wait_record = $self->{_waiting};
+        if ($wait_record) {
+          my ($time, $rec) = @$wait_record;
+          push @{$rec->{result}}, $data;
+          my $cv = $rec->{cv};
+          $cv->end if ($cv);
+        }
+        $self->_write_now();
+        return;
+      });
+  });
+  1;
 }
 
 sub transmit {
@@ -150,11 +118,10 @@ sub transmit {
   return $cv;
 }
 
-sub _real_write {
-  my ($self, $rec) = @_;
-  print STDERR "Sending: ", $rec->{hex}, ' ', ($rec->{desc}||''), "\n" if DEBUG;
-  $self->{handle}->push_write($rec->{raw});
-  $rec->{cv}->begin if ($rec->{cv});
+sub _open {
+  my $self = shift;
+  $self->SUPER::_open($self->_open_condvar);
+  return 1;
 }
 
 sub DESTROY {
