@@ -1,0 +1,37 @@
+use strict;
+use warnings;
+package AnyEvent::RFXCOM;
+
+# ABSTRACT: Perl modules for RFXCOM RF receivers/transmitters with AnyEvent
+
+=head1 SYNOPSIS
+
+  # see AnyEvent::RFXCOM::RX (and corresponding example script
+  # rfxcom-anyevent-rx) and see Device::RFXCOM::TX (and example script
+  # rfxcom-anyevent-tx)
+
+=head1 DESCRIPTION
+
+AnyEvent modules to support RF receivers and transmitters produced by
+RFXCOM, L<http://www.rfxcom.com/>.  This code is derived from code
+written for the xPL-Perl project at L<http://www.xpl-perl.org.uk/>.
+
+A bonus module is provided to support W800 RF receivers from
+L<http://www.wgldesigns.com/>.  These receivers recognize fewer RF
+protocols.
+
+These devices are typically used for home automation and sensor
+monitoring applications.
+
+=head1 THANKS
+
+Special thanks to RFXCOM, L<http://www.rfxcom.com/>, for their
+excellent documentation and for giving me permission to use it to help
+me write this code.  I own a number of their products and highly
+recommend them.
+
+=head1 SEE ALSO
+
+L<Device::RFXCOM::RX>, L<rfxcom-rx>, L<Device::RFXCOM::TX>, L<rfxcom-tx>.
+
+RFXCOM website: http://www.rfxcom.com/
