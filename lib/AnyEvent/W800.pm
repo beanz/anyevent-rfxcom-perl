@@ -87,12 +87,26 @@ sub DESTROY {
   $_[0]->cleanup;
 }
 
+=method C<cleanup()>
+
+This method attempts to destroy any resources in the event of a
+disconnection or fatal error.
+
+=cut
+
 sub cleanup {
   my ($self, $error) = @_;
   print STDERR $self."->cleanup\n" if DEBUG;
   undef $self->{discard_timer};
   undef $self->{dup_timer};
 }
+
+=method C<anyevent_read_type()>
+
+This method is used to register an L<AnyEvent::Handle> read type
+method to read W800 messages.
+
+=cut
 
 sub anyevent_read_type {
   my ($handle, $cb, $self) = @_;
