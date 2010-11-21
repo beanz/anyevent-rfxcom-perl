@@ -55,13 +55,6 @@ sub _open_condvar {
   return $cv;
 }
 
-sub _open_serial_port {
-  my ($self, $cv) = @_;
-  my $fh = $self->SUPER::_open_serial_port;
-  $cv->send($fh);
-  return $cv;
-}
-
 sub _open_tcp_port {
   my ($self, $cv) = @_;
   my $dev = $self->{device};
