@@ -47,3 +47,16 @@ $w = AnyEvent->io(fh => \*STDIN, poll => 'r',
                   });
 
 AnyEvent->condvar->recv;
+
+=head1 THANKS
+
+Special thanks to RFXCOM, L<http://www.rfxcom.com/>, for their
+excellent documentation and for giving me permission to use it to help
+me write this code.  I own a number of their products and highly
+recommend them.
+
+=head1 SEE ALSO
+
+L<AnyEvent::RFXCOM::TX>
+
+RFXCOM website: http://www.rfxcom.com/
