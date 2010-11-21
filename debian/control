@@ -9,7 +9,8 @@ Homepage: http://wiki.github.com/beanz/anyevent-rfxcom-perl/
 
 Package: libanyevent-rfxcom-perl
 Architecture: all
-Depends: ${perl:Depends}, ${misc:Depends}, libanyevent-perl (>= 5.271-1)
+Depends: ${perl:Depends}, ${misc:Depends}, libanyevent-perl (>= 5.271-1),
+  libdevice-rfxcom-perl
 Description: Perl AnyEvent extension for RFXCOM RF receivers/transmitters.
  This module provides an AnyEvent API for communicating with RFXCOM RF
  receivers and transmitters (http://www.rfxcom.com/).  It also
