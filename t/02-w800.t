@@ -143,8 +143,13 @@ $cv->recv;
 undef $server;
 undef $w800;
 
-$cv = AnyEvent->condvar;
-AnyEvent::W800->new(device => $addr, callback => sub {});
-eval { $cv->recv };
-like($@, qr!^AnyEvent::W800: Can't connect to device \Q$addr\E:!o,
-     'connection failed');
+SKIP: {
+  skip 'fails with some event loops', 1
+    unless ($AnyEvent::MODEL eq 'AnyEvent::Impl::Perl');
+
+  $cv = AnyEvent->condvar;
+  AnyEvent::W800->new(device => $addr, callback => sub {});
+  eval { $cv->recv };
+  like($@, qr!^AnyEvent::W800: Can't connect to device \Q$addr\E:!o,
+       'connection failed');
+}

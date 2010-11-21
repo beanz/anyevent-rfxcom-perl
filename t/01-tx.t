@@ -278,12 +278,24 @@ like(test_warn(sub { $tx->transmit(type => 'x10', command => 'on'); }),
 undef $tx;
 undef $w;
 
-eval { Device::RFXCOM::TX->new(device => $addr) };
-like($@, qr!^TCP connect to '\Q$addr\E' failed:!o, 'connection failed');
+SKIP: {
+  skip 'fails with some event loops', 2
+    unless ($AnyEvent::MODEL eq 'AnyEvent::Impl::Perl');
 
-eval { Device::RFXCOM::TX->new(device => $host, port => $port) };
-like($@, qr!^TCP connect to '\Q$addr\E' failed:!o,
-     'connection failed (default port)');
+  $cv = AnyEvent->condvar;
+  $tx = AnyEvent::RFXCOM::TX->new(device => $addr,
+                                  init_callback => sub { $cv->send(1); });
+  eval { $cv->recv };
+  like($@, qr!^AnyEvent::RFXCOM::TX: Can't connect to device \Q$addr\E:!o,
+       'connection failed');
+
+  $cv = AnyEvent->condvar;
+  $tx = AnyEvent::RFXCOM::TX->new(device => $host, port => $port,
+                                  init_callback => sub { $cv->send(1); });
+  eval { $cv->recv };
+  like($@, qr!^AnyEvent::RFXCOM::TX: Can't connect to device \Q$host\E:!o,
+       'connection failed');
+}
 
 sub test_warn {
   my $sub = shift;
