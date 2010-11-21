@@ -1,6 +1,11 @@
+libanyevent-rfxcom-perl (1.103240-2) unstable; urgency=low
+
+  * Fix depends.
+
+ -- Mark Hindess <soft-debian@temporalanomaly.com>  Sun, 21 Nov 2010 13:22:48 +0000
+
 libanyevent-rfxcom-perl (1.103240-1) unstable; urgency=low
 
   * Initial CPAN release.
 
  -- Mark Hindess <soft-debian@temporalanomaly.com>  Sun, 21 Nov 2010 13:00:22 +0000
-
