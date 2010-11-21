@@ -1,5 +1,4 @@
 Revision history for Perl extension AnyEvent::RFXCOM.
 
 {{$NEXT}}
-	- Initial CPAN release extracted from my code at
-          http://www.xpl-perl.org.uk/
+	- Initial CPAN release.
