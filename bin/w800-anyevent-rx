@@ -1,0 +1,46 @@
+#!/usr/bin/perl
+
+# ABSTRACT: example script to read from an RFXCOM receiver
+# PODNAME: w800-anyevent-rx
+
+=head1 SYNOPSIS
+
+  # read from USB tty device
+  w800-anyevent-rx /dev/ttyUSB0
+
+  # read from USB device with nicer name see Device::W800(3)
+  w800-anyevent-rx /dev/w800-rx
+
+  # read from network/wireless device
+  w800-anyevent-rx 10.0.0.1:10001
+
+=head1 DESCRIPTION
+
+This script is an example of the usage of the L<AnyEvent::W800>
+API.  It simply initializes the receiver and writes a summary of the
+received RF messages to stdout.  The keys and values given on the
+command line become the parameter hash for the
+L<AnyEvent::W800#new> constructor and are documented in that
+module.
+
+=cut
+
+use warnings;
+use strict;
+use AnyEvent::W800;
+
+$|=1; # don't buffer output
+
+my $device = shift or die "Usage: $0 [device] [key=value] ...\n";
+
+my $w800;
+$w800 = AnyEvent::W800->new(device => $device,
+                            callback => sub { print $_[0]->summary, "\n" },
+                            map { split /=/ } @ARGV);
+AnyEvent->condvar->recv;
+
+=head1 SEE ALSO
+
+L<Device::W800>
+
+W800 website: http://www.wgldesigns.com/w800.html
