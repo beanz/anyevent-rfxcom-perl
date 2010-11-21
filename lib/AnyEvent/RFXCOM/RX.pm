@@ -23,7 +23,6 @@ use 5.010;
 use constant DEBUG => $ENV{ANYEVENT_RFXCOM_RX_DEBUG};
 use base qw/AnyEvent::RFXCOM::Base Device::RFXCOM::RX/;
 use AnyEvent;
-use AnyEvent::Handle;
 use Carp qw/croak/;
 
 =method C<new(%params)>

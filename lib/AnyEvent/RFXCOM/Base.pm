@@ -19,6 +19,7 @@ use constant {
   DEBUG => $ENV{ANYEVENT_RFXCOM_BASE_DEBUG},
 };
 
+use AnyEvent::Handle;
 use AnyEvent::Socket;
 
 sub _open_condvar {
