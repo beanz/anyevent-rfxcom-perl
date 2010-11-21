@@ -56,7 +56,7 @@ sub new {
 sub _handle_setup {
   my $self = shift;
   my $handle = $self->{handle};
-    $handle->on_rtimeout(sub {
+  $handle->on_rtimeout(sub {
     my $rbuf = \$handle->{rbuf};
     print STDERR $handle, ": discarding '",
       (unpack 'H*', $$rbuf), "'\n" if DEBUG;
