@@ -1,8 +1,8 @@
-libanyevent-rfxcom-perl (1.103270-2) unstable; urgency=low
+libanyevent-rfxcom-perl (1.103270-1) unstable; urgency=low
 
  * Fix test after Device::RFXCOM change.
 
- -- Mark Hindess <soft-debian@temporalanomaly.com>  Tue, 23 Nov 2010 23:25:42 +0000
+ -- Mark Hindess <soft-debian@temporalanomaly.com>  Tue, 23 Nov 2010 23:34:04 +0000
 
 libanyevent-rfxcom-perl (1.103240-2) unstable; urgency=low
 

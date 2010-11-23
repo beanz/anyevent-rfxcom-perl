@@ -1,6 +1,8 @@
 Revision history for Perl extension AnyEvent::RFXCOM.
 
 {{$NEXT}}
+
+1.103270  2010-11-23 23:32:36 Europe/London
         - Fix test after Device::RFXCOM change.
 
 1.103250  2010-11-21 12:56:36 Europe/London
