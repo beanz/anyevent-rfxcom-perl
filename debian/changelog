@@ -1,3 +1,10 @@
+libanyevent-rfxcom-perl (1.103300-1) unstable; urgency=low
+
+ * Simpler AnyEvent::Handle usage.
+ * Ack timeout handling fix.
+
+ -- Mark Hindess <soft-debian@temporalanomaly.com>  Fri, 26 Nov 2010 20:11:07 +0000
+
 libanyevent-rfxcom-perl (1.103270-1) unstable; urgency=low
 
  * Fix test after Device::RFXCOM change.
