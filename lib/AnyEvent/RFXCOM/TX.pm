@@ -87,23 +87,24 @@ sub _handle_setup {
     return unless (defined $handle);
     print STDERR $handle.": on drain\n" if DEBUG;
     $handle->rtimeout($self->{ack_timeout});
-    $handle->push_read(chunk => 1,
-      sub {
-        my ($handle, $data) = @_;
-        $handle->rtimeout(0);
-        $self->{callback}->($data) if ($self->{callback});
-        print STDERR $handle.": read ",
-          (unpack 'H*', $data), "\n" if DEBUG;
-        my $wait_record = $self->{_waiting};
-        if ($wait_record) {
-          my ($time, $rec) = @$wait_record;
-          push @{$rec->{result}}, $data;
-          my $cv = $rec->{cv};
-          $cv->end if ($cv);
-        }
-        $self->_write_now();
-        return;
-      });
+  });
+  $handle->on_read(sub {
+    my ($handle) = @_;
+    $handle->rtimeout(0);
+    my $rbuf = \$handle->{rbuf};
+    my $data = $$rbuf;
+    $$rbuf = '';
+    $self->{callback}->($data) if ($self->{callback});
+    print STDERR $handle.": read ", (unpack 'H*', $data), "\n" if DEBUG;
+    my $wait_record = $self->{_waiting};
+    if ($wait_record) {
+      my ($time, $rec) = @$wait_record;
+      push @{$rec->{result}}, $data;
+      my $cv = $rec->{cv};
+      $cv->end if ($cv);
+    }
+    $self->_write_now();
+    return;
   });
   1;
 }
