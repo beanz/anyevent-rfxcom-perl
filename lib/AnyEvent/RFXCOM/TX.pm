@@ -86,6 +86,7 @@ sub _handle_setup {
   $handle->on_drain(sub {
     return unless (defined $handle);
     print STDERR $handle.": on drain\n" if DEBUG;
+    $handle->rtimeout_reset();
     $handle->rtimeout($self->{ack_timeout});
   });
   $handle->on_read(sub {
