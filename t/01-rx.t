@@ -79,7 +79,7 @@ plan skip_all => "Failed to create dummy server: $@" if ($@);
 my ($host,$port) = @{$cv->recv};
 my $addr = join ':', $host, $port;
 
-plan tests => 62;
+plan tests => 67;
 
 use_ok('AnyEvent::RFXCOM::RX');
 
