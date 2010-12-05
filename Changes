@@ -1,6 +1,8 @@
 Revision history for Perl extension AnyEvent::RFXCOM.
 
 {{$NEXT}}
+
+1.103390  2010-12-05 22:27:34 Europe/London
         - Refactor test functions.
         - Simpler AnyEvent::Handle usage.
         - Ack timeout handling fix.
