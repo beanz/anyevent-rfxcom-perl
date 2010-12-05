@@ -6,7 +6,6 @@ use strict;
 use constant {
   DEBUG => $ENV{ANYEVENT_RFXCOM_TX_TEST_DEBUG}
 };
-
 $|=1;
 
 BEGIN {
@@ -17,7 +16,8 @@ BEGIN {
   if ($@) {
     import Test::More skip_all => 'Missing AnyEvent module(s): '.$@;
   }
-  import Test::More tests => 55;
+  import Test::More;
+  use t::Helpers qw/:all/;
 }
 
 my @connections =
@@ -146,76 +146,15 @@ my @connections =
 
   );
 
-my @server_connections = @connections; # copy so we don't modify client copy
-
 my $cv = AnyEvent->condvar;
-my $server = tcp_server undef, undef, sub {
-  my ($fh, $host, $port) = @_;
-  print STDERR "In server\n" if DEBUG;
-  my $handle;
-  $handle = AnyEvent::Handle->new(fh => $fh,
-                                  on_error => sub {
-                                    warn "error $_[2]\n";
-                                    $_[0]->destroy;
-                                  },
-                                  on_eof => sub {
-                                    $handle->destroy; # destroy handle
-                                    warn "done.\n";
-                                  },
-                                  timeout => 1,
-                                  on_timeout => sub {
-                                    die "server timeout\n";
-                                  }
-                                 );
-  my @actions = @{shift @server_connections || []};
-  unless (@actions) {
-    die "Server received unexpected connection\n";
-  }
-  handle_connection($handle, \@actions);
-}, sub {
-  my ($fh, $host, $port) = @_;
-  $cv->send([$host, $port]);
-};
-
-sub handle_connection {
-  my ($handle, $actions) = @_;
-  print STDERR "In handle connection ", scalar @$actions, "\n" if DEBUG;
-  my $rec = shift @$actions;
-  unless ($rec) {
-    print STDERR "closing connection\n" if DEBUG;
-    return $handle->push_shutdown;
-  }
-  my ($desc, $recv, $send) = @{$rec}{qw/desc recv send/};
-  if ($recv eq '') {
-    print STDERR "Sending: ", $send if DEBUG;
-    $send = pack "H*", $send;
-    print STDERR "Sending ", length $send, " bytes\n" if DEBUG;
-    $handle->push_write($send);
-    handle_connection($handle, $actions);
-    return;
-  }
-  my $expect = $recv;
-  print STDERR "Waiting for ", $recv, "\n" if DEBUG;
-  my $len = .5*length $recv;
-  print STDERR "Waiting for ", $len, " bytes\n" if DEBUG;
-  $handle->push_read(chunk => $len,
-                     sub {
-                       print STDERR "In receive handler\n" if DEBUG;
-                       my $got = uc unpack 'H*', $_[1];
-                       is($got, $expect,
-                          '... correct message received by server - '.$desc);
-                       print STDERR "Sending: ", $send, "\n" if DEBUG;
-                       $send = pack "H*", $send;
-                       print STDERR "Sending ", length $send, " bytes\n"
-                         if DEBUG;
-                       $handle->push_write($send);
-                       handle_connection($handle, $actions);
-                       1;
-                     });
-}
+my $server;
+eval { $server = test_server($cv, @connections) };
+plan skip_all => "Failed to create dummy server: $@" if ($@);
 
 my ($host,$port) = @{$cv->recv};
 my $addr = join ':', $host, $port;
+
+plan tests => 55;
 
 use_ok('AnyEvent::RFXCOM::TX');
 
@@ -295,18 +234,4 @@ SKIP: {
   eval { $cv->recv };
   like($@, qr!^AnyEvent::RFXCOM::TX: Can't connect to device \Q$host\E:!o,
        'connection failed');
-}
-
-sub test_warn {
-  my $sub = shift;
-  my $warn;
-  local $SIG{__WARN__} = sub { $warn .= $_[0]; };
-  eval { $sub->(); };
-  die $@ if ($@);
-  if ($warn) {
-    $warn =~ s/\s+at (\S+|\(eval \d+\)(\[[^]]+\])?) line \d+\.?\s*$//g;
-    $warn =~ s/\s+at (\S+|\(eval \d+\)(\[[^]]+\])?) line \d+\.?\s*$//g;
-    $warn =~ s/ \(\@INC contains:.*?\)$//;
-  }
-  return $warn;
 }

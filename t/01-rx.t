@@ -17,97 +17,69 @@ BEGIN {
   if ($@) {
     import Test::More skip_all => 'Missing AnyEvent module(s): '.$@;
   }
-  import Test::More tests => 62;
+  import Test::More;
+  use t::Helpers qw/:all/;
 }
 
 my @connections =
   (
    [
-    'F020' => '4d26',
-    'F041' => '41',
-    'F02A' => '2c', # mode is still 0x41 really but differs here for coverage
-    '' => '20609f08f7',
-    '' => '20609f08f7', # duplicate
-    '' => '80',
-    '' => '20609f', # buffer should be discarded by timeout
-    '' => '',
-    '' => '20609f08f7', # not duplicate
+    {
+     desc => 'version check',
+     recv => 'F020',
+     send => '4d26',
+    },
+    {
+     desc => 'set variable length mode',
+     recv => 'F041',
+     send => '41',
+    },
+    {
+     desc => 'enable all possible receiving modes',
+     recv => 'F02A',
+     send => '2c', # mode is still 0x41 really but differs here for coverage
+    },
+    {
+     desc => 'x10 message',
+     recv => '',
+     send => '20609f08f7',
+    },
+    {
+     desc => 'duplicate x10 message',
+     recv => '',
+     send => '20609f08f7',
+    },
+    {
+     desc => 'empty message',
+     recv => '',
+     send => '80',
+    },
+    {
+     desc => 'partial x10 message',
+     recv => '',
+     send => '20609f',
+    },
+    {
+     desc => 'sleep for discard timeout',
+     sleep => 0.7,
+    },
+    {
+     desc => 'not duplicate x10 message',
+     recv => '',
+     send => '20609f08f7',
+    },
    ],
-
   );
+
 my $cv = AnyEvent->condvar;
-my $server = tcp_server undef, undef, sub {
-  my ($fh, $host, $port) = @_;
-  print STDERR "In server\n" if DEBUG;
-  my $handle;
-  $handle = AnyEvent::Handle->new(fh => $fh,
-                                  on_error => sub {
-                                    warn "error $_[2]\n";
-                                    $_[0]->destroy;
-                                  },
-                                  on_eof => sub {
-                                    $handle->destroy; # destroy handle
-                                    warn "done.\n";
-                                  },
-                                 );
-  my $actions = shift @connections;
-  unless ($actions && @$actions) {
-    die "Server received unexpected connection\n";
-  }
-  handle_connection($handle, $actions);
-}, sub {
-  my ($fh, $host, $port) = @_;
-  $cv->send([$host, $port]);
-};
+my $server;
+eval { $server = test_server($cv, @connections) };
+plan skip_all => "Failed to create dummy server: $@" if ($@);
 
-sub handle_connection {
-  my ($handle, $actions) = @_;
-  print STDERR "In handle connection ", scalar @$actions, "\n" if DEBUG;
-  my ($recv, $send) = splice @$actions, 0, 2, ()
-    or do {
-      print STDERR "closing connection\n" if DEBUG;
-      return $handle->push_shutdown;
-    };
-  if ($recv eq '') {
-    if ($send eq '') {
-      print STDERR "Pausing: 0.7\n" if DEBUG;
-      # pause to overcome duplicate timeout
-      my $w; $w = AnyEvent->timer(after => 0.7, cb => sub {
-                                    handle_connection($handle, $actions);
-                                    undef $w;
-                                  });
-      return;
-    } else {
-      print STDERR "Sending: ", $send if DEBUG;
-      $send = pack "H*", $send;
-      print STDERR " (", length $send, " bytes)\n" if DEBUG;
-      $handle->push_write($send);
-      handle_connection($handle, $actions);
-      return;
-    }
-  }
-  my $expect = $recv;
-  print STDERR "Waiting for ", $recv, "\n" if DEBUG;
-  my $len = .5*length $recv;
-  print STDERR "Waiting for ", $len, " bytes\n" if DEBUG;
-  $handle->push_read(chunk => $len,
-                     sub {
-                       print STDERR "In receive handler\n" if DEBUG;
-                       my $got = uc unpack 'H*', $_[1];
-                       is($got, $expect,
-                          '... correct message received by server - '.$expect);
-                       print STDERR "Sending: ", $send, "\n" if DEBUG;
-                       $send = pack "H*", $send;
-                       print STDERR "Sending ", length $send, " bytes\n"
-                         if DEBUG;
-                       $handle->push_write($send);
-                       handle_connection($handle, $actions);
-                       1;
-                     });
-}
+my ($host,$port) = @{$cv->recv};
+my $addr = join ':', $host, $port;
 
-my $addr = $cv->recv;
-$addr = $addr->[0].':'.$addr->[1];
+plan tests => 62;
 
 use_ok('AnyEvent::RFXCOM::RX');
 
