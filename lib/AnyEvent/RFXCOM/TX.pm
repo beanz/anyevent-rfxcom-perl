@@ -21,7 +21,7 @@ AnyEvent module for handling communication with an RFXCOM transmitter.
 
 =cut
 
-use 5.010;
+use 5.008;
 use constant DEBUG => $ENV{ANYEVENT_RFXCOM_TX_DEBUG};
 use base qw/AnyEvent::RFXCOM::Base Device::RFXCOM::TX/;
 use AnyEvent;
