@@ -1,6 +1,7 @@
 Revision history for Perl extension AnyEvent::RFXCOM.
 
 {{$NEXT}}
+        - Reduce perl version requirement to 5.8.
 
 1.103390  2010-12-05 22:27:34 Europe/London
         - Refactor test functions.

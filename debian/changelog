@@ -1,3 +1,9 @@
+libanyevent-rfxcom-perl (1.110430-1) unstable; urgency=low
+
+  * Reduce perl version requirement to 5.8.
+
+ -- Mark Hindess <soft-debian@temporalanomaly.com>  Sat, 12 Feb 2011 10:37:54 +0000
+
 libanyevent-rfxcom-perl (1.103390-1) unstable; urgency=low
 
   * Refactor test functions.
