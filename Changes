@@ -1,6 +1,8 @@
 Revision history for Perl extension AnyEvent::RFXCOM.
 
 {{$NEXT}}
+
+1.110430  2011-02-12 10:33:02 Europe/London
         - Reduce perl version requirement to 5.8.
 
 1.103390  2010-12-05 22:27:34 Europe/London
