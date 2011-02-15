@@ -26,6 +26,7 @@ use 5.006;
 use constant DEBUG => $ENV{ANYEVENT_W800_DEBUG};
 use Carp qw/croak/;
 use base qw/AnyEvent::RFXCOM::Base Device::W800/;
+use Sub::Name;
 
 =method C<new(%parameters)>
 
@@ -56,20 +57,20 @@ sub new {
 sub _handle_setup {
   my $self = shift;
   my $handle = $self->{handle};
-  $handle->on_rtimeout(sub {
+  $handle->on_rtimeout(subname 'on_rtimeout_cb' => sub {
     my $rbuf = \$handle->{rbuf};
     print STDERR $handle, ": discarding '",
       (unpack 'H*', $$rbuf), "'\n" if DEBUG;
     $$rbuf = '';
     $handle->rtimeout(0);
   });
-  $handle->on_timeout(sub {
+  $handle->on_timeout(subname 'on_timeout_cb' => sub {
     print STDERR $handle.": Clearing duplicate cache\n" if DEBUG;
     $self->{_cache} = {};
     $handle->timeout(0);
   });
   $handle->push_read(ref $self => $self,
-                     sub {
+                     subname 'push_read_cb' => sub {
                        $self->{callback}->(@_);
                        $self->_write_now();
                        return;
@@ -117,7 +118,7 @@ method to read W800 messages.
 
 sub anyevent_read_type {
   my ($handle, $cb, $self) = @_;
-  sub {
+  subname 'anyevent_read_type_reader' => sub {
     my $rbuf = \$handle->{rbuf};
     $handle->rtimeout($self->{discard_timeout});
     $handle->timeout($self->{dup_timeout});

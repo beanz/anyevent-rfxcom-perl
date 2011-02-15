@@ -26,6 +26,7 @@ use constant DEBUG => $ENV{ANYEVENT_RFXCOM_TX_DEBUG};
 use base qw/AnyEvent::RFXCOM::Base Device::RFXCOM::TX/;
 use AnyEvent;
 use Carp qw/croak/;
+use Sub::Name;
 
 =method C<new(%params)>
 
@@ -78,18 +79,18 @@ to trigger them.
 sub _handle_setup {
   my $self = shift;
   my $handle = $self->{handle};
-  $handle->on_rtimeout(sub {
+  $handle->on_rtimeout(subname 'on_rtimeout_cb' => sub {
     print STDERR $handle.": no ack\n" if DEBUG;
     $handle->rtimeout(0);
     $self->_init_mode();
   });
-  $handle->on_drain(sub {
+  $handle->on_drain(subname 'on_drain_cb' => sub {
     return unless (defined $handle);
     print STDERR $handle.": on drain\n" if DEBUG;
     $handle->rtimeout_reset();
     $handle->rtimeout($self->{ack_timeout});
   });
-  $handle->on_read(sub {
+  $handle->on_read(subname 'on_read_cb' => sub {
     my ($handle) = @_;
     $handle->rtimeout(0);
     my $rbuf = \$handle->{rbuf};
@@ -114,7 +115,7 @@ sub transmit {
   my $self = shift;
   my $cv = AnyEvent->condvar;
   my $res = [];
-  $cv->cb(sub { $cv->send($res->[0]) });
+  $cv->cb(subname 'transmit_cb' => sub { $cv->send($res->[0]) });
   $self->SUPER::transmit(args => [ cv => $cv, result => $res ], @_);
   return $cv;
 }

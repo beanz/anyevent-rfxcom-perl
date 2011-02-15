@@ -21,30 +21,31 @@ use constant {
 
 use AnyEvent::Handle;
 use AnyEvent::Socket;
+use Sub::Name;
 
 sub _open_condvar {
   my $self = shift;
   my $cv = AnyEvent->condvar;
-  $cv->cb(sub {
+  $cv->cb(subname 'open_cb' => sub {
             my $fh = $_[0]->recv;
             print STDERR "start cb $fh @_\n" if DEBUG;
             my $handle; $handle =
               AnyEvent::Handle->new(
                 fh => $fh,
-                on_error => sub {
+                on_error => subname('on_error' => sub {
                   my ($handle, $fatal, $msg) = @_;
                   print STDERR $handle.": error $msg\n" if DEBUG;
                   $handle->destroy;
                   if ($fatal) {
                     $self->cleanup($msg);
                   }
-                },
-                on_eof => sub {
+                }),
+                on_eof => subname('on_eof' => sub {
                   my ($handle) = @_;
                   print STDERR $handle.": eof\n" if DEBUG;
                   $handle->destroy;
                   $self->cleanup('connection closed');
-                },
+                }),
               );
             $self->{handle} = $handle;
             $self->_handle_setup();
@@ -62,7 +63,7 @@ sub _open_tcp_port {
   require AnyEvent::Socket; import AnyEvent::Socket;
   my ($host, $port) = split /:/, $dev, 2;
   $port = $self->{port} unless (defined $port);
-  $self->{sock} = tcp_connect $host, $port, sub {
+  $self->{sock} = tcp_connect $host, $port, subname 'tcp_connect_cb' => sub {
     my $fh = shift
       or do {
         my $err = (ref $self).": Can't connect to device $dev: $!";
