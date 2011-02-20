@@ -56,6 +56,20 @@ sub _open_condvar {
   return $cv;
 }
 
+=method C<cleanup()>
+
+This method attempts to destroy any resources in the event of a
+disconnection or fatal error.
+
+=cut
+
+sub cleanup {
+  my $self = shift;
+  print STDERR $self."->cleanup\n" if DEBUG;
+  $self->{handle}->destroy if ($self->{handle});
+  delete $self->{handle};
+}
+
 sub _open_tcp_port {
   my ($self, $cv) = @_;
   my $dev = $self->{device};

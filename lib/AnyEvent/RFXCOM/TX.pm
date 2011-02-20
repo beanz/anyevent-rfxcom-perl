@@ -148,7 +148,7 @@ disconnection or fatal error.  It is not yet implemented.
 
 sub cleanup {
   my ($self, $error) = @_;
-  print STDERR $self."->cleanup\n" if DEBUG;
+  $self->SUPER::cleanup(@_);
   undef $self->{discard_timer};
   undef $self->{dup_timer};
 }

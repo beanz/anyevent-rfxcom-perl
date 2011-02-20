@@ -107,7 +107,7 @@ disconnection or fatal error.
 
 sub cleanup {
   my ($self, $error) = @_;
-  print STDERR $self."->cleanup\n" if DEBUG;
+  $self->SUPER::cleanup(@_);
   undef $self->{discard_timer};
   undef $self->{dup_timer};
 }
