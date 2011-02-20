@@ -116,7 +116,7 @@ sub test_server {
                                       $_[0]->destroy;
                                     },
                                     on_eof => sub {
-                                      $handle->destroy; # destroy handle
+                                      $_[0]->destroy; # destroy handle
                                       warn "done.\n";
                                     },
                                     timeout => 1,

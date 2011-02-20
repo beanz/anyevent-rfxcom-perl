@@ -59,6 +59,7 @@ sub _handle_setup {
   my $self = shift;
   my $handle = $self->{handle};
   $handle->on_rtimeout(subname 'on_rtimeout_cb' => sub {
+    my ($handle) = @_;
     my $rbuf = \$handle->{rbuf};
     print STDERR $handle, ": discarding '",
       (unpack 'H*', $$rbuf), "'\n" if DEBUG;
@@ -66,6 +67,7 @@ sub _handle_setup {
     $handle->rtimeout(0);
   });
   $handle->on_timeout(subname 'on_timeout_cb' => sub {
+    my ($handle) = @_;
     print STDERR $handle.": Clearing duplicate cache\n" if DEBUG;
     $self->{_cache} = {};
     $handle->timeout(0);
@@ -121,6 +123,7 @@ sub anyevent_read_type {
   my ($handle, $cb, $self) = @_;
 
   subname 'anyevent_read_type_reader' => sub {
+    my ($handle) = @_;
     my $rbuf = \$handle->{rbuf};
     $handle->rtimeout($self->{discard_timeout});
     $handle->timeout($self->{dup_timeout});

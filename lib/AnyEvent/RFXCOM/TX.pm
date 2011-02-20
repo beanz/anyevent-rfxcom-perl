@@ -80,11 +80,13 @@ sub _handle_setup {
   my $self = shift;
   my $handle = $self->{handle};
   $handle->on_rtimeout(subname 'on_rtimeout_cb' => sub {
+    my ($handle) = @_;
     print STDERR $handle.": no ack\n" if DEBUG;
     $handle->rtimeout(0);
     $self->_init_mode();
   });
   $handle->on_drain(subname 'on_drain_cb' => sub {
+    my ($handle) = @_;
     return unless (defined $handle);
     print STDERR $handle.": on drain\n" if DEBUG;
     $handle->rtimeout_reset();
