@@ -206,3 +206,5 @@ SKIP: {
   like($@, qr!^AnyEvent::RFXCOM::RX: Can't connect to device \Q$addr\E:!o,
        'connection failed');
 }
+
+undef $rx;
