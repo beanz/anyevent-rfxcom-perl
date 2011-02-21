@@ -120,7 +120,9 @@ sub transmit {
   my $self = shift;
   my $cv = AnyEvent->condvar;
   my $res = [];
-  $cv->cb(subname 'transmit_cb' => sub { $cv->send($res->[0]) });
+  my $weak_cv = $cv;
+  weaken $weak_cv;
+  $cv->cb(subname 'transmit_cb' => sub { $weak_cv->send($res->[0]) });
   $self->SUPER::transmit(args => [ cv => $cv, result => $res ], @_);
   return $cv;
 }
