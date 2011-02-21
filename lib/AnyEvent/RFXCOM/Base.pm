@@ -22,10 +22,14 @@ use constant {
 use AnyEvent::Handle;
 use AnyEvent::Socket;
 use Sub::Name;
+use Scalar::Util qw/weaken/;
 
 sub _open_condvar {
   my $self = shift;
   my $cv = AnyEvent->condvar;
+  my $weak_self = $self;
+  weaken $weak_self;
+
   $cv->cb(subname 'open_cb' => sub {
             my $fh = $_[0]->recv;
             print STDERR "start cb $fh @_\n" if DEBUG;
@@ -37,22 +41,22 @@ sub _open_condvar {
                   print STDERR $handle.": error $msg\n" if DEBUG;
                   $handle->destroy;
                   if ($fatal) {
-                    $self->cleanup($msg);
+                    $weak_self->cleanup($msg);
                   }
                 }),
                 on_eof => subname('on_eof' => sub {
                   my ($handle) = @_;
                   print STDERR $handle.": eof\n" if DEBUG;
                   $handle->destroy;
-                  $self->cleanup('connection closed');
+                  $weak_self->cleanup('connection closed');
                 }),
               );
-            $self->{handle} = $handle;
-            $self->_handle_setup();
-            delete $self->{_waiting}; # uncork queued writes
-            $self->_write_now();
+            $weak_self->{handle} = $handle;
+            $weak_self->_handle_setup();
+            delete $weak_self->{_waiting}; # uncork queued writes
+            $weak_self->_write_now();
           });
-  $self->{_waiting} = { desc => 'fake for async open' };
+  $weak_self->{_waiting} = { desc => 'fake for async open' };
   return $cv;
 }
 

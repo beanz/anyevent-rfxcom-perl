@@ -27,6 +27,7 @@ use base qw/AnyEvent::RFXCOM::Base Device::RFXCOM::TX/;
 use AnyEvent;
 use Carp qw/croak/;
 use Sub::Name;
+use Scalar::Util qw/weaken/;
 
 =method C<new(%params)>
 
@@ -79,18 +80,20 @@ to trigger them.
 sub _handle_setup {
   my $self = shift;
   my $handle = $self->{handle};
+  my $weak_self = $self;
+  weaken $weak_self;
   $handle->on_rtimeout(subname 'on_rtimeout_cb' => sub {
     my ($handle) = @_;
     print STDERR $handle.": no ack\n" if DEBUG;
     $handle->rtimeout(0);
-    $self->_init_mode();
+    $weak_self->_init_mode();
   });
   $handle->on_drain(subname 'on_drain_cb' => sub {
     my ($handle) = @_;
     return unless (defined $handle);
     print STDERR $handle.": on drain\n" if DEBUG;
     $handle->rtimeout_reset();
-    $handle->rtimeout($self->{ack_timeout});
+    $handle->rtimeout($weak_self->{ack_timeout});
   });
   $handle->on_read(subname 'on_read_cb' => sub {
     my ($handle) = @_;
@@ -98,16 +101,16 @@ sub _handle_setup {
     my $rbuf = \$handle->{rbuf};
     my $data = $$rbuf;
     $$rbuf = '';
-    $self->{callback}->($data) if ($self->{callback});
+    $weak_self->{callback}->($data) if ($weak_self->{callback});
     print STDERR $handle.": read ", (unpack 'H*', $data), "\n" if DEBUG;
-    my $wait_record = $self->{_waiting};
+    my $wait_record = $weak_self->{_waiting};
     if ($wait_record) {
       my ($time, $rec) = @$wait_record;
       push @{$rec->{result}}, $data;
       my $cv = $rec->{cv};
       $cv->end if ($cv);
     }
-    $self->_write_now();
+    $weak_self->_write_now();
     return;
   });
   1;

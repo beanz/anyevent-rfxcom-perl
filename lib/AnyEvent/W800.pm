@@ -27,6 +27,7 @@ use constant DEBUG => $ENV{ANYEVENT_W800_DEBUG};
 use Carp qw/croak/;
 use base qw/AnyEvent::RFXCOM::Base Device::W800/;
 use Sub::Name;
+use Scalar::Util qw/weaken/;
 
 =method C<new(%parameters)>
 
@@ -56,6 +57,9 @@ sub new {
 
 sub _handle_setup {
   my $self = shift;
+  my $weak_self = $self;
+  weaken $weak_self;
+
   my $handle = $self->{handle};
   $handle->on_rtimeout(subname 'on_rtimeout_cb' => sub {
     my ($handle) = @_;
@@ -68,13 +72,13 @@ sub _handle_setup {
   $handle->on_timeout(subname 'on_timeout_cb' => sub {
     my ($handle) = @_;
     print STDERR $handle.": Clearing duplicate cache\n" if DEBUG;
-    $self->{_cache} = {};
+    $weak_self->{_cache} = {};
     $handle->timeout(0);
   });
-  $handle->push_read(ref $self => $self,
+  $handle->push_read(ref $self => $weak_self,
                      subname 'push_read_cb' => sub {
-                       $self->{callback}->(@_);
-                       $self->_write_now();
+                       $weak_self->{callback}->(@_);
+                       $weak_self->_write_now();
                        return;
                      });
   1;
@@ -120,14 +124,17 @@ method to read W800 messages.
 
 sub anyevent_read_type {
   my ($handle, $cb, $self) = @_;
+  my $weak_self = $self;
+  weaken $weak_self;
+
   subname 'anyevent_read_type_reader' => sub {
     my ($handle) = @_;
     my $rbuf = \$handle->{rbuf};
-    $handle->rtimeout($self->{discard_timeout});
-    $handle->timeout($self->{dup_timeout});
+    $handle->rtimeout($weak_self->{discard_timeout});
+    $handle->timeout($weak_self->{dup_timeout});
     while (1) { # read all message from the buffer
       print STDERR "Before: ", (unpack 'H*', $$rbuf||''), "\n" if DEBUG;
-      my $res = $self->read_one($rbuf);
+      my $res = $weak_self->read_one($rbuf);
       unless ($res) {
         if (defined $res) {
           print STDERR "Ignoring duplicate\n" if DEBUG;
