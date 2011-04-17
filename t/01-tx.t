@@ -16,8 +16,11 @@ BEGIN {
   if ($@) {
     import Test::More skip_all => 'Missing AnyEvent module(s): '.$@;
   }
+  eval { require AnyEvent::MockTCPServer; import AnyEvent::MockTCPServer };
+  if ($@) {
+    import Test::More skip_all => 'No AnyEvent::MockTCPServer module: '.$@;
+  }
   import Test::More;
-  use t::Helpers qw/:all/;
 }
 
 my @connections =
@@ -143,15 +146,24 @@ my @connections =
      init => 1,
     },
    ],
-
   );
 
-my $cv = AnyEvent->condvar;
-my $server;
-eval { $server = test_server($cv, @connections) };
-plan skip_all => "Failed to create dummy server: $@" if ($@);
+my @sc = ();
+foreach my $con (@connections) {
+  my @a = ();
+  foreach my $rec (@$con) {
+    my ($recv, $send, $desc) = @{$rec}{qw/recv send desc/};
+    push @a,
+      [ packrecv => $recv, $desc ],
+      [ packsend => $send, $desc ];
+  }
+  push @sc, \@a;
+}
 
-my ($host,$port) = @{$cv->recv};
+my $server;
+eval { $server = AnyEvent::MockTCPServer->new(connections => \@sc); };
+plan skip_all => "Failed to create dummy server: $@" if ($@);
+my ($host, $port) = $server->connect_address;
 my $addr = join ':', $host, $port;
 
 plan tests => 55;
@@ -162,6 +174,7 @@ my $tx;
 my $w;
 my %args = ();
 
+my $cv;
 foreach my $con (@connections) {
 
   my $init = 0;
@@ -234,4 +247,18 @@ SKIP: {
   eval { $cv->recv };
   like($@, qr!^AnyEvent::RFXCOM::TX: Can't connect to device \Q$host\E:!o,
        'connection failed');
+}
+
+sub test_warn {
+  my $sub = shift;
+  my $warn;
+  local $SIG{__WARN__} = sub { $warn .= $_[0]; };
+  eval { $sub->(); };
+  die $@ if ($@);
+  if ($warn) {
+    $warn =~ s/\s+at (\S+|\(eval \d+\)(\[[^]]+\])?) line \d+\.?\s*$//g;
+    $warn =~ s/\s+at (\S+|\(eval \d+\)(\[[^]]+\])?) line \d+\.?\s*$//g;
+    $warn =~ s/ \(\@INC contains:.*?\)$//;
+  }
+  return $warn;
 }
