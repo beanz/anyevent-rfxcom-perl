@@ -20,6 +20,8 @@ lib/AnyEvent/RFXCOM/Base.pm
 lib/AnyEvent/RFXCOM/RX.pm
 lib/AnyEvent/RFXCOM/TX.pm
 lib/AnyEvent/W800.pm
+pod2htmd.tmp
+pod2htmi.tmp
 t/01-rx.t
 t/01-tx.t
 t/02-w800.t
