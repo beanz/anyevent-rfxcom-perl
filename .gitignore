@@ -1,6 +1,6 @@
-*~
 /AnyEvent-RFXCOM*
+/libanyevent-rfxcom-perl_*
+/.build
+*~
 /.tdldb.bak
 /temp
-/.build
-/libanyevent-rfxcom-perl_*
