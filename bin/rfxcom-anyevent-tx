@@ -3,26 +3,6 @@
 # ABSTRACT: example script to read from an RFXCOM receiver
 # PODNAME: rfxcom-anyevent-tx
 
-=head1 SYNOPSIS
-
-  # read from USB tty device
-  rfxcom-anyevent-tx /dev/ttyUSB0
-
-  # read from USB device with nicer name see Device::RFXCOM::TX(3)
-  rfxcom-anyevent-tx /dev/rfxcom-tx
-
-  # read from network/wireless device
-  rfxcom-anyevent-tx 10.0.0.1:10001
-
-=head1 DESCRIPTION
-
-This script is an example of the usage of the L<AnyEvent::RFXCOM::TX>
-API.  It simply initializes the transmitter and reads messages
-specifications from stdin.  The keys and values given on the command
-line become the parameter hash for the L<AnyEvent::RFXCOM::TX#new>
-constructor and are documented in that module.
-
-=cut
 
 use warnings;
 use strict;
@@ -48,6 +28,37 @@ $w = AnyEvent->io(fh => \*STDIN, poll => 'r',
 
 AnyEvent->condvar->recv;
 
+
+__END__
+=pod
+
+=head1 NAME
+
+rfxcom-anyevent-tx - example script to read from an RFXCOM receiver
+
+=head1 VERSION
+
+version 1.111950
+
+=head1 SYNOPSIS
+
+  # read from USB tty device
+  rfxcom-anyevent-tx /dev/ttyUSB0
+
+  # read from USB device with nicer name see Device::RFXCOM::TX(3)
+  rfxcom-anyevent-tx /dev/rfxcom-tx
+
+  # read from network/wireless device
+  rfxcom-anyevent-tx 10.0.0.1:10001
+
+=head1 DESCRIPTION
+
+This script is an example of the usage of the L<AnyEvent::RFXCOM::TX>
+API.  It simply initializes the transmitter and reads messages
+specifications from stdin.  The keys and values given on the command
+line become the parameter hash for the L<AnyEvent::RFXCOM::TX#new>
+constructor and are documented in that module.
+
 =head1 THANKS
 
 Special thanks to RFXCOM, L<http://www.rfxcom.com/>, for their
@@ -60,3 +71,17 @@ recommend them.
 L<AnyEvent::RFXCOM::TX>
 
 RFXCOM website: http://www.rfxcom.com/
+
+=head1 AUTHOR
+
+Mark Hindess <soft-cpan@temporalanomaly.com>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2011 by Mark Hindess.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
+
+=cut
+

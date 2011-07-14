@@ -1,25 +1,12 @@
 use strict;
 use warnings;
 package AnyEvent::RFXCOM::TX;
+BEGIN {
+  $AnyEvent::RFXCOM::TX::VERSION = '1.111950';
+}
 
 # ABSTRACT: AnyEvent module for an RFXCOM transmitter
 
-=head1 SYNOPSIS
-
-  # Create simple RFXCOM message reader with logging callback
-  my $tx = AnyEvent::RFXCOM::TX->new(device => '/dev/ttyUSB0');
-
-  # transmit an X10 RF message
-  my $cv = $tx->transmit(type => 'x10', command => 'on', device => 'a1');
-
-  # wait for acknowledgement from transmitter
-  $cv->recv;
-
-=head1 DESCRIPTION
-
-AnyEvent module for handling communication with an RFXCOM transmitter.
-
-=cut
 
 use 5.008;
 use constant DEBUG => $ENV{ANYEVENT_RFXCOM_TX_DEBUG};
@@ -29,53 +16,6 @@ use Carp qw/croak/;
 use Sub::Name;
 use Scalar::Util qw/weaken/;
 
-=method C<new(%params)>
-
-Constructs a new C<AnyEvent::RFXCOM::TX> object.  The supported
-parameters are:
-
-=over
-
-=item device
-
-The name of the device to connect to.  The value can be a tty device
-name or a C<hostname:port> for TCP-based RFXCOM transmitters.  The
-default is C</dev/rfxcom-tx>.  See C<Device::RFXCOM::TX> for more
-information.
-
-=item receiver_connected
-
-This parameter should be set to a true value if a receiver is connected
-to the transmitter.
-
-=item flamingo
-
-This parameter should be set to a true value to enable the
-transmission for "flamingo" RF messages.
-
-=item harrison
-
-This parameter should be set to a true value to enable the
-transmission for "harrison" RF messages.
-
-=item koko
-
-This parameter should be set to a true value to enable the
-transmission for "klik-on klik-off" RF messages.
-
-=item x10
-
-This parameter should be set to a false value to disable the
-transmission for "x10" RF messages.  This protocol is enable
-by default in keeping with the hardware default.
-
-=back
-
-There is no option to enable homeeasy messages because they use either
-the klik-on klik-off protocol or homeeasy specific commands in order
-to trigger them.
-
-=cut
 
 sub _handle_setup {
   my $self = shift;
@@ -144,12 +84,6 @@ sub DESTROY {
   $_[0]->cleanup;
 }
 
-=method C<cleanup()>
-
-This method attempts to destroy any resources in the event of a
-disconnection or fatal error.  It is not yet implemented.
-
-=cut
 
 sub cleanup {
   my ($self, $error) = @_;
@@ -159,6 +93,86 @@ sub cleanup {
 }
 
 1;
+
+
+__END__
+=pod
+
+=head1 NAME
+
+AnyEvent::RFXCOM::TX - AnyEvent module for an RFXCOM transmitter
+
+=head1 VERSION
+
+version 1.111950
+
+=head1 SYNOPSIS
+
+  # Create simple RFXCOM message reader with logging callback
+  my $tx = AnyEvent::RFXCOM::TX->new(device => '/dev/ttyUSB0');
+
+  # transmit an X10 RF message
+  my $cv = $tx->transmit(type => 'x10', command => 'on', device => 'a1');
+
+  # wait for acknowledgement from transmitter
+  $cv->recv;
+
+=head1 DESCRIPTION
+
+AnyEvent module for handling communication with an RFXCOM transmitter.
+
+=head1 METHODS
+
+=head2 C<new(%params)>
+
+Constructs a new C<AnyEvent::RFXCOM::TX> object.  The supported
+parameters are:
+
+=over
+
+=item device
+
+The name of the device to connect to.  The value can be a tty device
+name or a C<hostname:port> for TCP-based RFXCOM transmitters.  The
+default is C</dev/rfxcom-tx>.  See C<Device::RFXCOM::TX> for more
+information.
+
+=item receiver_connected
+
+This parameter should be set to a true value if a receiver is connected
+to the transmitter.
+
+=item flamingo
+
+This parameter should be set to a true value to enable the
+transmission for "flamingo" RF messages.
+
+=item harrison
+
+This parameter should be set to a true value to enable the
+transmission for "harrison" RF messages.
+
+=item koko
+
+This parameter should be set to a true value to enable the
+transmission for "klik-on klik-off" RF messages.
+
+=item x10
+
+This parameter should be set to a false value to disable the
+transmission for "x10" RF messages.  This protocol is enable
+by default in keeping with the hardware default.
+
+=back
+
+There is no option to enable homeeasy messages because they use either
+the klik-on klik-off protocol or homeeasy specific commands in order
+to trigger them.
+
+=head2 C<cleanup()>
+
+This method attempts to destroy any resources in the event of a
+disconnection or fatal error.  It is not yet implemented.
 
 =head1 THANKS
 
@@ -172,3 +186,17 @@ recommend them.
 AnyEvent(3)
 
 RFXCOM website: http://www.rfxcom.com/
+
+=head1 AUTHOR
+
+Mark Hindess <soft-cpan@temporalanomaly.com>
+
+=head1 COPYRIGHT AND LICENSE
+
+This software is copyright (c) 2011 by Mark Hindess.
+
+This is free software; you can redistribute it and/or modify it under
+the same terms as the Perl 5 programming language system itself.
+
+=cut
+
