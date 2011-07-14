@@ -28,7 +28,7 @@ THANKS
     this code. I own a number of their products and highly recommend them.
 
 SEE ALSO
-    Device::RFXCOM::RX, rfxcom-rx, Device::RFXCOM::TX, rfxcom-tx.
+    Device::RFXCOM::RX, rfxcom-rx(1p), Device::RFXCOM::TX, rfxcom-tx(1p).
 
     RFXCOM website: http://www.rfxcom.com/
 

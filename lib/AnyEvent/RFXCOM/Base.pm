@@ -110,7 +110,7 @@ version 1.111950
 
 =head1 SYNOPSIS
 
-  ... abstract base class
+  # ... abstract base class
 
 =head1 DESCRIPTION
 
