@@ -44,8 +44,8 @@ recommend them.
 
 =head1 SEE ALSO
 
-L<Device::RFXCOM::RX>, L<rfxcom-rx(1p)>,
-L<Device::RFXCOM::TX>, L<rfxcom-tx(1p)>.
+L<Device::RFXCOM::RX>, L<rfxcom-rx(1)>,
+L<Device::RFXCOM::TX>, L<rfxcom-tx(1)>.
 
 RFXCOM website: http://www.rfxcom.com/
 
