@@ -28,7 +28,7 @@ w800-anyevent-rx - example script to read from an RFXCOM receiver
 
 =head1 VERSION
 
-version 1.111950
+version 1.111960
 
 =head1 SYNOPSIS
 
@@ -43,13 +43,11 @@ version 1.111950
 
 =head1 DESCRIPTION
 
-This script is an example of the usage of the L<AnyEvent::W800>
-API.  It simply initializes the receiver and writes a summary of the
+This script is an example of the usage of the L<AnyEvent::W800> API.
+It simply initializes the receiver and writes a summary of the
 received RF messages to stdout.  The keys and values given on the
-command line become the parameter hash for the
-L<AnyEvent::W800::new()|AnyEvent::W800/"new(%params)">
-constructor and are documented in that
-module.
+command line become the parameter hash for the L<AnyEvent::W800>
+constructor and are documented in that module.
 
 =head1 SEE ALSO
 

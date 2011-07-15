@@ -3,7 +3,7 @@ NAME
     with AnyEvent
 
 VERSION
-    version 1.111950
+    version 1.111960
 
 SYNOPSIS
       # see AnyEvent::RFXCOM::RX (and corresponding example script
