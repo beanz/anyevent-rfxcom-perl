@@ -147,7 +147,7 @@ sub anyevent_read_type {
         return;
       }
       print STDERR "After: ", (unpack 'H*', $$rbuf), "\n" if DEBUG;
-      $res = $cb->($res) and return $res;
+      $res = $cb->($res);
     }
   }
 }
