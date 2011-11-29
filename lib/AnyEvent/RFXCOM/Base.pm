@@ -47,7 +47,6 @@ sub _open_condvar {
                 on_eof => subname('on_eof' => sub {
                   my ($handle) = @_;
                   print STDERR $handle.": eof\n" if DEBUG;
-                  $handle->destroy;
                   $weak_self->cleanup('connection closed');
                 }),
               );

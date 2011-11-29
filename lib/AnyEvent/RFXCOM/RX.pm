@@ -75,12 +75,15 @@ sub _handle_setup {
     $weak_self->{_cache} = {};
     $handle->timeout(0);
   });
-  $handle->push_read(ref $self => $self,
-                     subname 'push_read_cb' => sub {
-                       $weak_self->{callback}->(@_);
-                       $weak_self->_write_now();
-                       return;
-                     });
+  $handle->on_read(subname 'on_read_cb' => sub {
+    my ($hdl) = @_;
+    $hdl->push_read(ref $self => $self,
+                    subname 'push_read_cb' => sub {
+                      $weak_self->{callback}->(@_);
+                      $weak_self->_write_now();
+                      return 1;
+                    });
+  });
   1;
 }
 
