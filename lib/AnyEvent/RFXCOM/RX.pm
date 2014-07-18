@@ -1,10 +1,7 @@
 use strict;
 use warnings;
 package AnyEvent::RFXCOM::RX;
-BEGIN {
-  $AnyEvent::RFXCOM::RX::VERSION = '1.111960';
-}
-
+$AnyEvent::RFXCOM::RX::VERSION = '1.141990';
 # ABSTRACT: AnyEvent module for an RFXCOM receiver
 
 
@@ -43,12 +40,15 @@ sub _handle_setup {
     $weak_self->{_cache} = {};
     $handle->timeout(0);
   });
-  $handle->push_read(ref $self => $self,
-                     subname 'push_read_cb' => sub {
-                       $weak_self->{callback}->(@_);
-                       $weak_self->_write_now();
-                       return;
-                     });
+  $handle->on_read(subname 'on_read_cb' => sub {
+    my ($hdl) = @_;
+    $hdl->push_read(ref $self => $self,
+                    subname 'push_read_cb' => sub {
+                      $weak_self->{callback}->(@_);
+                      $weak_self->_write_now();
+                      return 1;
+                    });
+  });
   1;
 }
 
@@ -100,16 +100,18 @@ sub anyevent_read_type {
         return;
       }
       print STDERR "After: ", (unpack 'H*', $$rbuf), "\n" if DEBUG;
-      $res = $cb->($res) and return $res;
+      $res = $cb->($res);
     }
   }
 }
 
 1;
 
-
 __END__
+
 =pod
+
+=encoding UTF-8
 
 =head1 NAME
 
@@ -117,7 +119,7 @@ AnyEvent::RFXCOM::RX - AnyEvent module for an RFXCOM receiver
 
 =head1 VERSION
 
-version 1.111960
+version 1.141990
 
 =head1 SYNOPSIS
 
@@ -183,10 +185,9 @@ Mark Hindess <soft-cpan@temporalanomaly.com>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2011 by Mark Hindess.
+This software is copyright (c) 2014 by Mark Hindess.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
 
 =cut
-
