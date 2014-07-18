@@ -1,6 +1,6 @@
 #!/usr/bin/perl
 
-# ABSTRACT: example script to read from an RFXCOM receiver
+# ABSTRACT: example script to write to an RFXCOM transmitter
 # PODNAME: rfxcom-anyevent-tx
 
 =head1 SYNOPSIS
@@ -17,7 +17,7 @@
 =head1 DESCRIPTION
 
 This script is an example of the usage of the L<AnyEvent::RFXCOM::TX>
-API.  It simply initializes the transmitter and reads messages
+API.  It simply initializes the transmitter and reads message
 specifications from stdin.  The keys and values given on the command
 line become the parameter hash for the L<AnyEvent::RFXCOM::TX>
 constructor and are documented in that module.
