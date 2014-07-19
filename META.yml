@@ -34,4 +34,4 @@ resources:
   bugtracker: https://github.com/beanz/anyevent-rfxcom-perl/issues
   homepage: http://search.cpan.org/dist/AnyEvent-RFXCOM/
   repository: git://github.com/beanz/anyevent-rfxcom-perl.git
-version: '1.141990'
+version: '1.142000'

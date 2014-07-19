@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 package AnyEvent::RFXCOM::Base;
-$AnyEvent::RFXCOM::Base::VERSION = '1.141990';
+$AnyEvent::RFXCOM::Base::VERSION = '1.142000';
 # ABSTRACT: module for AnyEvent RFXCOM base class
 
 
@@ -104,7 +104,7 @@ AnyEvent::RFXCOM::Base - module for AnyEvent RFXCOM base class
 
 =head1 VERSION
 
-version 1.141990
+version 1.142000
 
 =head1 SYNOPSIS
 
