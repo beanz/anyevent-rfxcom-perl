@@ -50,7 +50,7 @@ my @connections =
     [ packrecv => '', 'partial x10 message' ],
     [ packsend => '20609f', 'partial x10 message response' ],
 
-    [ sleep => 0.7, 'sleep for discard timeout' ],
+    [ sleep => 0.9, 'sleep for discard timeout' ],
 
     [ packrecv => '', 'not duplicate x10 message' ],
     [ packsend => '20609f08f7', 'not duplicate x10 message response' ],
