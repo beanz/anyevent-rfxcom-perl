@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 package AnyEvent::W800;
-$AnyEvent::W800::VERSION = '1.142000';
+$AnyEvent::W800::VERSION = '1.142230';
 # ABSTRACT: Module to support W800 RF receiver
 
 
@@ -115,7 +115,7 @@ AnyEvent::W800 - Module to support W800 RF receiver
 
 =head1 VERSION
 
-version 1.142000
+version 1.142230
 
 =head1 SYNOPSIS
 

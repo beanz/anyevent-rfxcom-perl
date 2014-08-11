@@ -1,7 +1,7 @@
 use strict;
 use warnings;
 package AnyEvent::RFXCOM;
-$AnyEvent::RFXCOM::VERSION = '1.142000';
+$AnyEvent::RFXCOM::VERSION = '1.142230';
 # ABSTRACT: Perl modules for RFXCOM RF receivers/transmitters with AnyEvent
 
 __END__
@@ -16,7 +16,7 @@ AnyEvent::RFXCOM - Perl modules for RFXCOM RF receivers/transmitters with AnyEve
 
 =head1 VERSION
 
-version 1.142000
+version 1.142230
 
 =head1 SYNOPSIS
 

@@ -43,7 +43,7 @@ my %WriteMakefileArgs = (
     "AnyEvent::MockTCPServer" => 0,
     "Test::More" => 0
   },
-  "VERSION" => "1.142000",
+  "VERSION" => "1.142230",
   "test" => {
     "TESTS" => "t/*.t"
   }
