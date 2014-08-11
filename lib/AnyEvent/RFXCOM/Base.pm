@@ -40,7 +40,7 @@ sub _open_condvar {
                   my ($handle, $fatal, $msg) = @_;
                   print STDERR $handle.": error $msg\n" if DEBUG;
                   $handle->destroy;
-                  if ($fatal) {
+                  if ($fatal && defined $weak_self) {
                     $weak_self->cleanup($msg);
                   }
                 }),
