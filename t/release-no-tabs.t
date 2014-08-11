@@ -8,9 +8,35 @@ BEGIN {
 
 use strict;
 use warnings;
-use Test::More;
 
-eval 'use Test::NoTabs';
-plan skip_all => 'Test::NoTabs required' if $@;
+# this test was generated with Dist::Zilla::Plugin::Test::NoTabs 0.08
 
-all_perl_files_ok();
+use Test::More 0.88;
+use Test::NoTabs;
+
+my @files = (
+    'bin/rfxcom-anyevent-rx',
+    'bin/rfxcom-anyevent-tx',
+    'bin/w800-anyevent-rx',
+    'lib/AnyEvent/RFXCOM.pod',
+    'lib/AnyEvent/RFXCOM/Base.pm',
+    'lib/AnyEvent/RFXCOM/RX.pm',
+    'lib/AnyEvent/RFXCOM/TX.pm',
+    'lib/AnyEvent/W800.pm',
+    't/01-rx.t',
+    't/01-tx.t',
+    't/02-w800.t',
+    't/author-critic.t',
+    't/author-test-eol.t',
+    't/release-common_spelling.t',
+    't/release-kwalitee.t',
+    't/release-no-tabs.t',
+    't/release-pod-coverage.t',
+    't/release-pod-linkcheck.t',
+    't/release-pod-no404s.t',
+    't/release-pod-syntax.t',
+    't/release-synopsis.t'
+);
+
+notabs_ok($_) foreach @files;
+done_testing;

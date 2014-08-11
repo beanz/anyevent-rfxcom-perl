@@ -1,10 +1,7 @@
 use strict;
 use warnings;
 package AnyEvent::RFXCOM::Base;
-BEGIN {
-  $AnyEvent::RFXCOM::Base::VERSION = '1.111960';
-}
-
+$AnyEvent::RFXCOM::Base::VERSION = '1.142230';
 # ABSTRACT: module for AnyEvent RFXCOM base class
 
 
@@ -34,14 +31,13 @@ sub _open_condvar {
                   my ($handle, $fatal, $msg) = @_;
                   print STDERR $handle.": error $msg\n" if DEBUG;
                   $handle->destroy;
-                  if ($fatal) {
+                  if ($fatal && defined $weak_self) {
                     $weak_self->cleanup($msg);
                   }
                 }),
                 on_eof => subname('on_eof' => sub {
                   my ($handle) = @_;
                   print STDERR $handle.": eof\n" if DEBUG;
-                  $handle->destroy;
                   $weak_self->cleanup('connection closed');
                 }),
               );
@@ -96,9 +92,11 @@ sub _time_now {
 
 1;
 
-
 __END__
+
 =pod
+
+=encoding UTF-8
 
 =head1 NAME
 
@@ -106,7 +104,7 @@ AnyEvent::RFXCOM::Base - module for AnyEvent RFXCOM base class
 
 =head1 VERSION
 
-version 1.111960
+version 1.142230
 
 =head1 SYNOPSIS
 
@@ -142,10 +140,9 @@ Mark Hindess <soft-cpan@temporalanomaly.com>
 
 =head1 COPYRIGHT AND LICENSE
 
-This software is copyright (c) 2011 by Mark Hindess.
+This software is copyright (c) 2014 by Mark Hindess.
 
 This is free software; you can redistribute it and/or modify it under
 the same terms as the Perl 5 programming language system itself.
 
 =cut
-
