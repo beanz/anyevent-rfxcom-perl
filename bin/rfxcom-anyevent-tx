@@ -40,7 +40,7 @@ rfxcom-anyevent-tx - example script to write to an RFXCOM transmitter
 
 =head1 VERSION
 
-version 1.142230
+version 1.142231
 
 =head1 SYNOPSIS
 
