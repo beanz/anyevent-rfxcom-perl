@@ -1,6 +1,7 @@
 Revision history for Perl extension AnyEvent::RFXCOM.
 
-1.142230  2014-08-11 22:28:56+01:00 Europe/London
+1.142230  2014-08-11 22:33:38+01:00 Europe/London
+        - Fix some CPAN tester test issues.
 
 1.111960  2011-07-15 23:02:03 Europe/London
         - Fix some reference cycles to avoid memory leaks.
