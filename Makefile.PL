@@ -41,6 +41,8 @@ my %WriteMakefileArgs = (
   },
   "TEST_REQUIRES" => {
     "AnyEvent::MockTCPServer" => 0,
+    "ExtUtils::MakeMaker" => 0,
+    "File::Spec" => 0,
     "Test::More" => 0
   },
   "VERSION" => "1.142240",
@@ -60,6 +62,8 @@ my %FallbackPrereqs = (
   "Device::RFXCOM::RX" => 0,
   "Device::RFXCOM::TX" => 0,
   "Device::W800" => 0,
+  "ExtUtils::MakeMaker" => 0,
+  "File::Spec" => 0,
   "Scalar::Util" => 0,
   "Sub::Name" => 0,
   "Test::More" => 0,

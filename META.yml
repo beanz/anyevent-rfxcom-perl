@@ -4,6 +4,8 @@ author:
   - 'Mark Hindess <soft-cpan@temporalanomaly.com>'
 build_requires:
   AnyEvent::MockTCPServer: '0'
+  ExtUtils::MakeMaker: '0'
+  File::Spec: '0'
   Test::More: '0'
 configure_requires:
   ExtUtils::MakeMaker: '6.30'
