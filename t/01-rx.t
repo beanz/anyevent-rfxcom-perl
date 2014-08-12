@@ -10,6 +10,7 @@ use constant {
 $|=1;
 
 BEGIN {
+  $ENV{PERL_ANYEVENT_MODEL} = 'Perl';
   require Test::More;
   eval { require AnyEvent; import AnyEvent;
          require AnyEvent::Handle; import AnyEvent::Handle;
