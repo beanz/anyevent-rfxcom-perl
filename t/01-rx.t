@@ -10,8 +10,6 @@ use constant {
 $|=1;
 
 BEGIN {
-  $ENV{ANYEVENT_RFXCOM_RX_DEBUG}=1;
-  $ENV{PERL_ANYEVENT_MODEL} = 'Perl';
   require Test::More;
   eval { require AnyEvent; import AnyEvent;
          require AnyEvent::Handle; import AnyEvent::Handle;
@@ -32,13 +30,13 @@ my @connections =
     [ packrecv => 'F020', 'version check' ],
     [ packsend => '4d26', 'version check response' ],
 
-    [ packrecv => 'F041', 'set variable length mode' ],
-    [ packsend => '41', 'set variable length mode response' ],
-
     [ packrecv => 'F02A', 'enable all possible receiving modes' ],
     [ packsend => '2c',
       # mode is still 0x41 really but differs here for coverage
       'enable all possible receiving modes' ],
+
+    [ packrecv => 'F041', 'set variable length mode' ],
+    [ packsend => '41', 'set variable length mode response' ],
 
     [ packrecv => '', 'x10 message' ],
     [ packsend => '20609f08f7', 'x10 message response' ],
@@ -86,20 +84,20 @@ my @tests =
    sub {
      my ($res) = @_;
      is($res->type, 'mode', 'got 1st mode acknowledgement');
-     is($res->header_byte, 0x41, '... correct header_byte');
-     ok($res->master, '... from master receiver');
-     is($res->length, 0, '... correct data length');
-     is(@{$res->bytes}, 0, '... no data bytes');
-     is($res->summary, 'master mode 41.', '... correct summary string');
-   },
-   sub {
-     my ($res) = @_;
-     is($res->type, 'mode', 'got 2nd mode acknowledgement');
      is($res->header_byte, 0x2c, '... correct header_byte');
      ok($res->master, '... from master receiver');
      is($res->length, 0, '... correct data length');
      is(@{$res->bytes}, 0, '... no data bytes');
      is($res->summary, 'master mode 2c.', '... correct summary string');
+   },
+   sub {
+     my ($res) = @_;
+     is($res->type, 'mode', 'got 2nd mode acknowledgement');
+     is($res->header_byte, 0x41, '... correct header_byte');
+     ok($res->master, '... from master receiver');
+     is($res->length, 0, '... correct data length');
+     is(@{$res->bytes}, 0, '... no data bytes');
+     is($res->summary, 'master mode 41.', '... correct summary string');
    },
    sub {
      my ($res) = @_;
