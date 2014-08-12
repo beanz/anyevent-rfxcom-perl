@@ -10,6 +10,7 @@ use constant {
 $|=1;
 
 BEGIN {
+  $ENV{ANYEVENT_RFXCOM_RX_DEBUG}=1;
   $ENV{PERL_ANYEVENT_MODEL} = 'Perl';
   require Test::More;
   eval { require AnyEvent; import AnyEvent;
