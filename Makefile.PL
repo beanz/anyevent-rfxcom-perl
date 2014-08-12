@@ -28,7 +28,7 @@ my %WriteMakefileArgs = (
     "AnyEvent::Handle" => 0,
     "AnyEvent::Socket" => 0,
     "Carp" => 0,
-    "Device::RFXCOM::Base" => "1.103250",
+    "Device::RFXCOM::Base" => "1.142010",
     "Device::RFXCOM::RX" => 0,
     "Device::RFXCOM::TX" => 0,
     "Device::W800" => 0,
@@ -41,9 +41,11 @@ my %WriteMakefileArgs = (
   },
   "TEST_REQUIRES" => {
     "AnyEvent::MockTCPServer" => 0,
+    "ExtUtils::MakeMaker" => 0,
+    "File::Spec" => 0,
     "Test::More" => 0
   },
-  "VERSION" => "1.142231",
+  "VERSION" => "1.142240",
   "test" => {
     "TESTS" => "t/*.t"
   }
@@ -56,10 +58,12 @@ my %FallbackPrereqs = (
   "AnyEvent::MockTCPServer" => 0,
   "AnyEvent::Socket" => 0,
   "Carp" => 0,
-  "Device::RFXCOM::Base" => "1.103250",
+  "Device::RFXCOM::Base" => "1.142010",
   "Device::RFXCOM::RX" => 0,
   "Device::RFXCOM::TX" => 0,
   "Device::W800" => 0,
+  "ExtUtils::MakeMaker" => 0,
+  "File::Spec" => 0,
   "Scalar::Util" => 0,
   "Sub::Name" => 0,
   "Test::More" => 0,

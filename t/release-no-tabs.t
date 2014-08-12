@@ -23,6 +23,8 @@ my @files = (
     'lib/AnyEvent/RFXCOM/RX.pm',
     'lib/AnyEvent/RFXCOM/TX.pm',
     'lib/AnyEvent/W800.pm',
+    't/00-report-prereqs.dd',
+    't/00-report-prereqs.t',
     't/01-rx.t',
     't/01-tx.t',
     't/02-w800.t',
